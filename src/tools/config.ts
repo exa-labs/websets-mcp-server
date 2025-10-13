@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: 'https://api.exa.ai',
+  BASE_URL: 'https://api.exa.ai/websets',
   ENDPOINTS: {
     WEBSETS: '/v0/websets',
     WEBSET_BY_ID: (id: string) => `/v0/websets/${id}`,
