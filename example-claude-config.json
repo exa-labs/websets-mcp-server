@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "websets": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "websets-mcp-server"
+      ],
+      "env": {
+        "EXA_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
