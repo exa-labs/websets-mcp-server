@@ -8,7 +8,23 @@ import { createRequestLogger } from "../utils/logger.js";
 export function registerCreateWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "create_webset",
-    "Create a new Webset collection. Websets are collections of web entities (companies, people, papers) that can be automatically searched, verified, and enriched with custom data.",
+    `Create a new Webset collection. Websets are collections of web entities (companies, people, papers) that can be automatically searched, verified, and enriched with custom data.
+
+IMPORTANT PARAMETER FORMATS:
+- searchCriteria: MUST be array of objects like [{description: "..."}] (NOT array of strings)
+- enrichments: Each must have description field, optional format and options
+- enrichment options: MUST be array of objects like [{label: "..."}] (NOT array of strings)
+
+Example call:
+{
+  "name": "AI Startups",
+  "searchQuery": "AI startups in San Francisco",
+  "searchCriteria": [{"description": "Founded after 2020"}],
+  "enrichments": [
+    {"description": "CEO name", "format": "text"},
+    {"description": "Company stage", "format": "options", "options": [{"label": "Seed"}, {"label": "Series A"}]}
+  ]
+}`,
     {
       name: z.string().optional().describe("Name for the webset"),
       description: z.string().optional().describe("Description of the webset"),
@@ -33,6 +49,17 @@ export function registerCreateWebsetTool(server: McpServer, config?: { exaApiKey
       logger.start(`Creating webset${name ? ` "${name}"` : ''}`);
       
       try {
+        // Validate input parameters
+        if (searchCount !== undefined && searchCount < 1) {
+          return {
+            content: [{
+              type: "text" as const,
+              text: `Invalid searchCount: ${searchCount}. Must be at least 1.`
+            }],
+            isError: true,
+          };
+        }
+
         const axiosInstance = axios.create({
           baseURL: API_CONFIG.BASE_URL,
           headers: {
@@ -62,6 +89,7 @@ export function registerCreateWebsetTool(server: McpServer, config?: { exaApiKey
         }
         
         logger.log("Sending create webset request to API");
+        logger.log(`Parameters: ${JSON.stringify(params, null, 2)}`);
         
         const response = await axiosInstance.post<Webset>(
           API_CONFIG.ENDPOINTS.WEBSETS,
@@ -85,12 +113,34 @@ export function registerCreateWebsetTool(server: McpServer, config?: { exaApiKey
         if (axios.isAxiosError(error)) {
           const statusCode = error.response?.status || 'unknown';
           const errorMessage = error.response?.data?.message || error.message;
+          const errorDetails = error.response?.data?.details || '';
           
           logger.log(`API error (${statusCode}): ${errorMessage}`);
+          
+          // Provide helpful error message with correct format examples
+          let helpText = '';
+          if (statusCode === 400) {
+            helpText = '\n\nCommon issues:\n' +
+              '- searchCriteria must be array of objects: [{description: "criterion"}]\n' +
+              '- enrichments must be array of objects with description field\n' +
+              '- enrichment options must be array of objects: [{label: "option"}]\n' +
+              '- searchCount must be a positive number\n\n' +
+              'Example:\n' +
+              '{\n' +
+              '  "name": "AI Startups",\n' +
+              '  "searchQuery": "AI startups in San Francisco",\n' +
+              '  "searchCriteria": [{"description": "Founded after 2020"}],\n' +
+              '  "enrichments": [\n' +
+              '    {"description": "CEO name", "format": "text"},\n' +
+              '    {"description": "Company stage", "format": "options", "options": [{"label": "Seed"}, {"label": "Series A"}]}\n' +
+              '  ]\n' +
+              '}';
+          }
+          
           return {
             content: [{
               type: "text" as const,
-              text: `Error creating webset (${statusCode}): ${errorMessage}`
+              text: `Error creating webset (${statusCode}): ${errorMessage}${errorDetails ? '\nDetails: ' + errorDetails : ''}${helpText}`
             }],
             isError: true,
           };

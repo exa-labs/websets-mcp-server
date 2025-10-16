@@ -8,7 +8,20 @@ import { createRequestLogger } from "../utils/logger.js";
 export function registerCreateSearchTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "create_search",
-    "Create a new search to find and add items to a webset. The search will discover entities matching your query and criteria.",
+    `Create a new search to find and add items to a webset. The search will discover entities matching your query and criteria.
+
+IMPORTANT PARAMETER FORMATS:
+- entity: MUST be an object like {type: "company"} (NOT a string)
+- criteria: MUST be array of objects like [{description: "..."}] (NOT array of strings)
+
+Example call:
+{
+  "websetId": "webset_123",
+  "query": "AI startups in San Francisco",
+  "entity": {"type": "company"},
+  "criteria": [{"description": "Founded after 2020"}],
+  "count": 10
+}`,
     {
       websetId: z.string().describe("The ID or externalId of the webset"),
       query: z.string().describe("Natural language query describing what to search for (e.g., 'AI startups in San Francisco')"),
@@ -30,6 +43,17 @@ export function registerCreateSearchTool(server: McpServer, config?: { exaApiKey
       logger.start(`Creating search for webset: ${websetId}`);
       
       try {
+        // Validate input parameters before sending to API
+        if (count !== undefined && count < 1) {
+          return {
+            content: [{
+              type: "text" as const,
+              text: `Invalid count: ${count}. Must be at least 1.`
+            }],
+            isError: true,
+          };
+        }
+
         const axiosInstance = axios.create({
           baseURL: API_CONFIG.BASE_URL,
           headers: {
@@ -51,6 +75,7 @@ export function registerCreateSearchTool(server: McpServer, config?: { exaApiKey
         };
         
         logger.log("Sending create search request to API");
+        logger.log(`Parameters: ${JSON.stringify(params, null, 2)}`);
         
         const response = await axiosInstance.post<WebsetSearch>(
           API_CONFIG.ENDPOINTS.WEBSET_SEARCHES(websetId),
@@ -74,12 +99,32 @@ export function registerCreateSearchTool(server: McpServer, config?: { exaApiKey
         if (axios.isAxiosError(error)) {
           const statusCode = error.response?.status || 'unknown';
           const errorMessage = error.response?.data?.message || error.message;
+          const errorDetails = error.response?.data?.details || '';
           
           logger.log(`API error (${statusCode}): ${errorMessage}`);
+          
+          // Provide helpful error message with correct format examples
+          let helpText = '';
+          if (statusCode === 400) {
+            helpText = '\n\nCommon issues:\n' +
+              '- criteria must be array of objects: [{description: "criterion"}]\n' +
+              '- entity must be object: {type: "company"}\n' +
+              '- count must be a positive number\n' +
+              '- behavior must be "override" or "append"\n\n' +
+              'Example:\n' +
+              '{\n' +
+              '  "websetId": "webset_123",\n' +
+              '  "query": "AI startups in San Francisco",\n' +
+              '  "entity": {"type": "company"},\n' +
+              '  "criteria": [{"description": "Founded after 2020"}],\n' +
+              '  "count": 10\n' +
+              '}';
+          }
+          
           return {
             content: [{
               type: "text" as const,
-              text: `Error creating search (${statusCode}): ${errorMessage}`
+              text: `Error creating search (${statusCode}): ${errorMessage}${errorDetails ? '\nDetails: ' + errorDetails : ''}${helpText}`
             }],
             isError: true,
           };

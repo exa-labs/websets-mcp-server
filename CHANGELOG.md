@@ -4,6 +4,25 @@
 
 ### Fixed
 
+- **Enhanced Error Messages and Validation**
+  - Added comprehensive input validation for all create tools
+  - 400 errors now include helpful format examples and common issues
+  - Logs now include full parameter details for debugging
+  - Validation prevents bad requests before hitting API:
+    - Count parameters must be >= 1
+    - Cron expressions must have exactly 5 fields
+    - Options format must include options array
+    - Maximum 150 options enforced client-side
+  - Error responses include concrete examples of correct format
+
+- **Improved Tool Descriptions for AI Clarity**
+  - Added prominent "IMPORTANT PARAMETER FORMATS" section to all create tools
+  - Top-level descriptions now include complete JSON examples
+  - Explicitly states object vs string requirements (NOT a string)
+  - Shows exact format needed for complex parameters
+  - **Why this matters**: MCP protocol may not clearly expose nested Zod schemas
+  - AI callers can now see format requirements without parsing nested schema
+
 - **CRITICAL: Schema Consistency Across All Tools**
   - Fixed inconsistent parameter formats that were confusing AI callers
   - **`criteria` parameter**: Now consistently uses object format `[{description: string}]` across all tools:
