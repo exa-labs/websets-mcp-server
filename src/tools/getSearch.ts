@@ -49,24 +49,10 @@ export function registerGetSearchTool(server: McpServer, config?: { exaApiKey?: 
       } catch (error) {
         logger.error(error);
         
-        if (axios.isAxiosError(error)) {
-          const statusCode = error.response?.status || 'unknown';
-          const errorMessage = error.response?.data?.message || error.message;
-          
-          logger.log(`API error (${statusCode}): ${errorMessage}`);
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Error getting search (${statusCode}): ${errorMessage}`
-            }],
-            isError: true,
-          };
-        }
-        
         return {
           content: [{
             type: "text" as const,
-            text: `Error getting search: ${error instanceof Error ? error.message : String(error)}`
+            text: formatApiError(error, 'get_search')
           }],
           isError: true,
         };

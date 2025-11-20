@@ -1,11 +1,11 @@
 import { z } from "zod";
-import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
 import { CreateWebsetParams, Webset } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
+import { createAxiosClient, formatApiError } from "../utils/http.js";
 
-export function registerCreateWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerCreateWebsetTool(server: McpServer, config?: { exaApiKey?: string; debug?: boolean }): void {
   server.tool(
     "create_webset",
     `Create a new Webset collection. Websets are collections of web entities (companies, people, papers) that can be automatically searched, verified, and enriched with custom data.
@@ -28,9 +28,9 @@ Example call:
     {
       name: z.string().optional().describe("Name for the webset"),
       description: z.string().optional().describe("Description of the webset"),
-      externalId: z.string().optional().describe("Your own identifier for the webset"),
+      externalId: z.string().max(300).optional().describe("Your own identifier for the webset (max 300 characters)"),
       searchQuery: z.string().optional().describe("Natural language query to populate the webset (e.g., 'AI startups in San Francisco')"),
-      searchCount: z.number().optional().describe("Number of items to search for (default: 10)"),
+      searchCount: z.number().int().min(1).optional().describe("Number of items to search for (default: 10, must be positive integer)"),
       searchCriteria: z.array(z.object({
         description: z.string()
       })).optional().describe("Additional criteria to filter search results. Each criterion is an object with a 'description' field. Example: [{description: 'Founded after 2020'}, {description: 'Has more than 50 employees'}]"),
@@ -44,31 +44,12 @@ Example call:
     },
     async ({ name, description, externalId, searchQuery, searchCount, searchCriteria, enrichments }) => {
       const requestId = `create_webset-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'create_webset');
+      const logger = createRequestLogger(requestId, 'create_webset', config?.debug);
       
       logger.start(`Creating webset${name ? ` "${name}"` : ''}`);
       
       try {
-        // Validate input parameters
-        if (searchCount !== undefined && searchCount < 1) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Invalid searchCount: ${searchCount}. Must be at least 1.`
-            }],
-            isError: true,
-          };
-        }
-
-        const axiosInstance = axios.create({
-          baseURL: API_CONFIG.BASE_URL,
-          headers: {
-            'accept': 'application/json',
-            'content-type': 'application/json',
-            'x-api-key': config?.exaApiKey || process.env.EXA_API_KEY || ''
-          },
-          timeout: 30000
-        });
+        const axiosInstance = createAxiosClient(config);
 
         const params: CreateWebsetParams = {
           name,
@@ -110,22 +91,12 @@ Example call:
       } catch (error) {
         logger.error(error);
         
-        if (axios.isAxiosError(error)) {
-          const statusCode = error.response?.status || 'unknown';
-          const errorMessage = error.response?.data?.message || error.message;
-          const errorDetails = error.response?.data?.details || '';
-          
-          logger.log(`API error (${statusCode}): ${errorMessage}`);
-          
-          // Provide helpful error message with correct format examples
-          let helpText = '';
-          if (statusCode === 400) {
-            helpText = '\n\nCommon issues:\n' +
-              '- searchCriteria must be array of objects: [{description: "criterion"}]\n' +
-              '- enrichments must be array of objects with description field\n' +
-              '- enrichment options must be array of objects: [{label: "option"}]\n' +
-              '- searchCount must be a positive number\n\n' +
-              'Example:\n' +
+        const errorMessage = formatApiError(error, 'create_webset', true);
+        
+        return {
+          content: [{
+            type: "text" as const,
+            text: errorMessage + '\n\nExample:\n' +
               '{\n' +
               '  "name": "AI Startups",\n' +
               '  "searchQuery": "AI startups in San Francisco",\n' +
@@ -134,22 +105,7 @@ Example call:
               '    {"description": "CEO name", "format": "text"},\n' +
               '    {"description": "Company stage", "format": "options", "options": [{"label": "Seed"}, {"label": "Series A"}]}\n' +
               '  ]\n' +
-              '}';
-          }
-          
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Error creating webset (${statusCode}): ${errorMessage}${errorDetails ? '\nDetails: ' + errorDetails : ''}${helpText}`
-            }],
-            isError: true,
-          };
-        }
-        
-        return {
-          content: [{
-            type: "text" as const,
-            text: `Error creating webset: ${error instanceof Error ? error.message : String(error)}`
+              '}'
           }],
           isError: true,
         };

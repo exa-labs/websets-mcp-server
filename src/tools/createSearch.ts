@@ -1,11 +1,11 @@
 import { z } from "zod";
-import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
 import { WebsetSearch, CreateSearchParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
+import { createAxiosClient, formatApiError } from "../utils/http.js";
 
-export function registerCreateSearchTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerCreateSearchTool(server: McpServer, config?: { exaApiKey?: string; debug?: boolean }): void {
   server.tool(
     "create_search",
     `Create a new search to find and add items to a webset. The search will discover entities matching your query and criteria.
@@ -25,7 +25,7 @@ Example call:
     {
       websetId: z.string().describe("The ID or externalId of the webset"),
       query: z.string().describe("Natural language query describing what to search for (e.g., 'AI startups in San Francisco')"),
-      count: z.number().optional().describe("Number of items to find (default: 10, min: 1)"),
+      count: z.number().int().min(1).optional().describe("Number of items to find (default: 10, must be positive integer)"),
       entity: z.object({
         type: z.enum(['company', 'person', 'article', 'research_paper', 'custom']).describe("Type of entity to search for")
       }).optional().describe("Entity type to search for. Must be an object with a 'type' field. Example: {type: 'company'}"),
@@ -38,31 +38,12 @@ Example call:
     },
     async ({ websetId, query, count, entity, criteria, behavior, recall, metadata }) => {
       const requestId = `create_search-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'create_search');
+      const logger = createRequestLogger(requestId, 'create_search', config?.debug);
       
       logger.start(`Creating search for webset: ${websetId}`);
       
       try {
-        // Validate input parameters before sending to API
-        if (count !== undefined && count < 1) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Invalid count: ${count}. Must be at least 1.`
-            }],
-            isError: true,
-          };
-        }
-
-        const axiosInstance = axios.create({
-          baseURL: API_CONFIG.BASE_URL,
-          headers: {
-            'accept': 'application/json',
-            'content-type': 'application/json',
-            'x-api-key': config?.exaApiKey || process.env.EXA_API_KEY || ''
-          },
-          timeout: 30000
-        });
+        const axiosInstance = createAxiosClient(config);
 
         const params: CreateSearchParams = {
           query,
@@ -96,44 +77,17 @@ Example call:
       } catch (error) {
         logger.error(error);
         
-        if (axios.isAxiosError(error)) {
-          const statusCode = error.response?.status || 'unknown';
-          const errorMessage = error.response?.data?.message || error.message;
-          const errorDetails = error.response?.data?.details || '';
-          
-          logger.log(`API error (${statusCode}): ${errorMessage}`);
-          
-          // Provide helpful error message with correct format examples
-          let helpText = '';
-          if (statusCode === 400) {
-            helpText = '\n\nCommon issues:\n' +
-              '- criteria must be array of objects: [{description: "criterion"}]\n' +
-              '- entity must be object: {type: "company"}\n' +
-              '- count must be a positive number\n' +
-              '- behavior must be "override" or "append"\n\n' +
-              'Example:\n' +
+        return {
+          content: [{
+            type: "text" as const,
+            text: formatApiError(error, 'create_search', true) + '\n\nExample:\n' +
               '{\n' +
               '  "websetId": "webset_123",\n' +
               '  "query": "AI startups in San Francisco",\n' +
               '  "entity": {"type": "company"},\n' +
               '  "criteria": [{"description": "Founded after 2020"}],\n' +
               '  "count": 10\n' +
-              '}';
-          }
-          
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Error creating search (${statusCode}): ${errorMessage}${errorDetails ? '\nDetails: ' + errorDetails : ''}${helpText}`
-            }],
-            isError: true,
-          };
-        }
-        
-        return {
-          content: [{
-            type: "text" as const,
-            text: `Error creating search: ${error instanceof Error ? error.message : String(error)}`
+              '}'
           }],
           isError: true,
         };

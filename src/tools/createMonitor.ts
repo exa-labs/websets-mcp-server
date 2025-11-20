@@ -1,11 +1,11 @@
 import { z } from "zod";
-import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
 import { WebsetMonitor, CreateMonitorParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
+import { createAxiosClient, formatApiError } from "../utils/http.js";
 
-export function registerCreateMonitorTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerCreateMonitorTool(server: McpServer, config?: { exaApiKey?: string; debug?: boolean }): void {
   server.tool(
     "create_monitor",
     `Create a monitor to automatically update a webset on a schedule. Monitors run search operations to find new items.
@@ -35,27 +35,16 @@ Example call:
       entity: z.object({
         type: z.string()
       }).optional().describe("Entity type configuration for the search. Must be an object with a 'type' field. Example: {type: 'company'}"),
-      count: z.number().optional().describe("Maximum number of results to find per run"),
+      count: z.number().int().min(1).optional().describe("Maximum number of results to find per run (must be positive integer)"),
       behavior: z.enum(['append', 'override']).optional().describe("How new items should be added: 'append' adds to existing items, 'override' replaces them (default: append)")
     },
     async ({ websetId, cron, timezone, query, criteria, entity, count, behavior }) => {
       const requestId = `create_monitor-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'create_monitor');
+      const logger = createRequestLogger(requestId, 'create_monitor', config?.debug);
       
       logger.start(`Creating monitor for webset: ${websetId}`);
       
       try {
-        // Validate input parameters
-        if (count !== undefined && count < 1) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Invalid count: ${count}. Must be at least 1.`
-            }],
-            isError: true,
-          };
-        }
-
         // Validate cron expression has 5 fields
         const cronFields = cron.trim().split(/\s+/);
         if (cronFields.length !== 5) {
@@ -68,15 +57,7 @@ Example call:
           };
         }
 
-        const axiosInstance = axios.create({
-          baseURL: API_CONFIG.BASE_URL,
-          headers: {
-            'accept': 'application/json',
-            'content-type': 'application/json',
-            'x-api-key': config?.exaApiKey || process.env.EXA_API_KEY || ''
-          },
-          timeout: 30000
-        });
+        const axiosInstance = createAxiosClient(config);
 
         const params: CreateMonitorParams = {
           websetId,
@@ -118,23 +99,10 @@ Example call:
       } catch (error) {
         logger.error(error);
         
-        if (axios.isAxiosError(error)) {
-          const statusCode = error.response?.status || 'unknown';
-          const errorMessage = error.response?.data?.message || error.message;
-          const errorDetails = error.response?.data?.details || '';
-          
-          logger.log(`API error (${statusCode}): ${errorMessage}`);
-          
-          // Provide helpful error message with correct format examples
-          let helpText = '';
-          if (statusCode === 400) {
-            helpText = '\n\nCommon issues:\n' +
-              '- cron must have exactly 5 fields: "minute hour day month weekday"\n' +
-              '- criteria must be array of objects: [{description: "criterion"}]\n' +
-              '- entity must be object: {type: "company"}\n' +
-              '- behavior must be "append" or "override"\n' +
-              '- timezone must be valid IANA timezone (e.g., "America/New_York")\n\n' +
-              'Example:\n' +
+        return {
+          content: [{
+            type: "text" as const,
+            text: formatApiError(error, 'create_monitor', true) + '\n\nExample:\n' +
               '{\n' +
               '  "websetId": "webset_123",\n' +
               '  "cron": "0 9 * * 1",\n' +
@@ -148,22 +116,7 @@ Example call:
               'Common cron schedules:\n' +
               '- "0 9 * * 1" = Every Monday at 9am\n' +
               '- "0 0 * * *" = Daily at midnight\n' +
-              '- "0 */6 * * *" = Every 6 hours';
-          }
-          
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Error creating monitor (${statusCode}): ${errorMessage}${errorDetails ? '\nDetails: ' + errorDetails : ''}${helpText}`
-            }],
-            isError: true,
-          };
-        }
-        
-        return {
-          content: [{
-            type: "text" as const,
-            text: `Error creating monitor: ${error instanceof Error ? error.message : String(error)}`
+              '- "0 */6 * * *" = Every 6 hours'
           }],
           isError: true,
         };

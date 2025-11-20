@@ -1,35 +1,27 @@
 import { z } from "zod";
-import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
 import { WebsetEnrichment } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
+import { createAxiosClient, formatApiError } from "../utils/http.js";
 
-export function registerUpdateEnrichmentTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerUpdateEnrichmentTool(server: McpServer, config?: { exaApiKey?: string; debug?: boolean }): void {
   server.tool(
     "update_enrichment",
     "Update an enrichment's metadata. You can associate custom key-value pairs with the enrichment.",
     {
       websetId: z.string().describe("The ID or externalId of the webset"),
       enrichmentId: z.string().describe("The ID of the enrichment to update"),
-      metadata: z.record(z.string(), z.string()).describe("Key-value pairs to associate with this enrichment. Each value must be a string.")
+      metadata: z.record(z.string(), z.string().max(1000)).describe("Key-value pairs to associate with this enrichment. Each value must be a string with max length 1000.")
     },
     async ({ websetId, enrichmentId, metadata }) => {
       const requestId = `update_enrichment-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'update_enrichment');
+      const logger = createRequestLogger(requestId, 'update_enrichment', config?.debug);
       
       logger.start(`Updating enrichment ${enrichmentId} from webset: ${websetId}`);
       
       try {
-        const axiosInstance = axios.create({
-          baseURL: API_CONFIG.BASE_URL,
-          headers: {
-            'accept': 'application/json',
-            'content-type': 'application/json',
-            'x-api-key': config?.exaApiKey || process.env.EXA_API_KEY || ''
-          },
-          timeout: 30000
-        });
+        const axiosInstance = createAxiosClient(config);
 
         const params = { metadata };
         
@@ -54,24 +46,10 @@ export function registerUpdateEnrichmentTool(server: McpServer, config?: { exaAp
       } catch (error) {
         logger.error(error);
         
-        if (axios.isAxiosError(error)) {
-          const statusCode = error.response?.status || 'unknown';
-          const errorMessage = error.response?.data?.message || error.message;
-          
-          logger.log(`API error (${statusCode}): ${errorMessage}`);
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Error updating enrichment (${statusCode}): ${errorMessage}`
-            }],
-            isError: true,
-          };
-        }
-        
         return {
           content: [{
             type: "text" as const,
-            text: `Error updating enrichment: ${error instanceof Error ? error.message : String(error)}`
+            text: formatApiError(error, 'update_enrichment')
           }],
           isError: true,
         };
