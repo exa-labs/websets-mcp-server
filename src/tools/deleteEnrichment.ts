@@ -1,10 +1,10 @@
 import { z } from "zod";
-import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
 import { createRequestLogger } from "../utils/logger.js";
+import { createAxiosClient, formatApiError } from "../utils/http.js";
 
-export function registerDeleteEnrichmentTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerDeleteEnrichmentTool(server: McpServer, config?: { exaApiKey?: string; debug?: boolean }): void {
   server.tool(
     "delete_enrichment",
     "Delete an enrichment from a webset. This will remove all enriched data for this enrichment from all items.",
@@ -14,19 +14,12 @@ export function registerDeleteEnrichmentTool(server: McpServer, config?: { exaAp
     },
     async ({ websetId, enrichmentId }) => {
       const requestId = `delete_enrichment-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'delete_enrichment');
+      const logger = createRequestLogger(requestId, 'delete_enrichment', config?.debug);
       
       logger.start(`Deleting enrichment ${enrichmentId} from webset: ${websetId}`);
       
       try {
-        const axiosInstance = axios.create({
-          baseURL: API_CONFIG.BASE_URL,
-          headers: {
-            'accept': 'application/json',
-            'x-api-key': config?.exaApiKey || process.env.EXA_API_KEY || ''
-          },
-          timeout: 30000
-        });
+        const axiosInstance = createAxiosClient(config);
         
         logger.log("Sending delete enrichment request to API");
         
@@ -48,24 +41,10 @@ export function registerDeleteEnrichmentTool(server: McpServer, config?: { exaAp
       } catch (error) {
         logger.error(error);
         
-        if (axios.isAxiosError(error)) {
-          const statusCode = error.response?.status || 'unknown';
-          const errorMessage = error.response?.data?.message || error.message;
-          
-          logger.log(`API error (${statusCode}): ${errorMessage}`);
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Error deleting enrichment (${statusCode}): ${errorMessage}`
-            }],
-            isError: true,
-          };
-        }
-        
         return {
           content: [{
             type: "text" as const,
-            text: `Error deleting enrichment: ${error instanceof Error ? error.message : String(error)}`
+            text: formatApiError(error, 'delete_enrichment')
           }],
           isError: true,
         };

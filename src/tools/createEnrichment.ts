@@ -1,11 +1,11 @@
 import { z } from "zod";
-import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
 import { WebsetEnrichment, CreateEnrichmentParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
+import { createAxiosClient, formatApiError } from "../utils/http.js";
 
-export function registerCreateEnrichmentTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerCreateEnrichmentTool(server: McpServer, config?: { exaApiKey?: string; debug?: boolean }): void {
   server.tool(
     "create_enrichment",
     `Create a new enrichment for a webset. Enrichments automatically extract custom data from each item using AI agents (e.g., 'company revenue', 'CEO name', 'funding amount').
@@ -29,7 +29,7 @@ Example call (options format):
     },
     async ({ websetId, description, format, options, metadata }) => {
       const requestId = `create_enrichment-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'create_enrichment');
+      const logger = createRequestLogger(requestId, 'create_enrichment', config?.debug);
       
       logger.start(`Creating enrichment for webset: ${websetId}`);
       
@@ -55,15 +55,7 @@ Example call (options format):
           };
         }
 
-        const axiosInstance = axios.create({
-          baseURL: API_CONFIG.BASE_URL,
-          headers: {
-            'accept': 'application/json',
-            'content-type': 'application/json',
-            'x-api-key': config?.exaApiKey || process.env.EXA_API_KEY || ''
-          },
-          timeout: 30000
-        });
+        const axiosInstance = createAxiosClient(config);
 
         const params: CreateEnrichmentParams = {
           description,
@@ -94,22 +86,10 @@ Example call (options format):
       } catch (error) {
         logger.error(error);
         
-        if (axios.isAxiosError(error)) {
-          const statusCode = error.response?.status || 'unknown';
-          const errorMessage = error.response?.data?.message || error.message;
-          const errorDetails = error.response?.data?.details || '';
-          
-          logger.log(`API error (${statusCode}): ${errorMessage}`);
-          
-          // Provide helpful error message with correct format examples
-          let helpText = '';
-          if (statusCode === 400) {
-            helpText = '\n\nCommon issues:\n' +
-              '- options must be array of objects: [{label: "option"}]\n' +
-              '- format must be one of: text, date, number, options, email, phone, url\n' +
-              '- When format is "options", you must provide the options parameter\n' +
-              '- Maximum 150 options allowed\n\n' +
-              'Example (text format):\n' +
+        return {
+          content: [{
+            type: "text" as const,
+            text: formatApiError(error, 'create_enrichment', true) + '\n\nExample (text format):\n' +
               '{\n' +
               '  "websetId": "webset_123",\n' +
               '  "description": "CEO name",\n' +
@@ -121,22 +101,7 @@ Example call (options format):
               '  "description": "Company stage",\n' +
               '  "format": "options",\n' +
               '  "options": [{"label": "Seed"}, {"label": "Series A"}, {"label": "Series B"}]\n' +
-              '}';
-          }
-          
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Error creating enrichment (${statusCode}): ${errorMessage}${errorDetails ? '\nDetails: ' + errorDetails : ''}${helpText}`
-            }],
-            isError: true,
-          };
-        }
-        
-        return {
-          content: [{
-            type: "text" as const,
-            text: `Error creating enrichment: ${error instanceof Error ? error.message : String(error)}`
+              '}'
           }],
           isError: true,
         };

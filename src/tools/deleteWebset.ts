@@ -1,11 +1,11 @@
 import { z } from "zod";
-import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
 import { Webset } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
+import { createAxiosClient, formatApiError } from "../utils/http.js";
 
-export function registerDeleteWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerDeleteWebsetTool(server: McpServer, config?: { exaApiKey?: string; debug?: boolean }): void {
   server.tool(
     "delete_webset",
     "Delete a webset and all its items. This action is permanent and cannot be undone.",
@@ -14,20 +14,12 @@ export function registerDeleteWebsetTool(server: McpServer, config?: { exaApiKey
     },
     async ({ id }) => {
       const requestId = `delete_webset-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'delete_webset');
+      const logger = createRequestLogger(requestId, 'delete_webset', config?.debug);
       
       logger.start(`Deleting webset: ${id}`);
       
       try {
-        const axiosInstance = axios.create({
-          baseURL: API_CONFIG.BASE_URL,
-          headers: {
-            'accept': 'application/json',
-            'content-type': 'application/json',
-            'x-api-key': config?.exaApiKey || process.env.EXA_API_KEY || ''
-          },
-          timeout: 30000
-        });
+        const axiosInstance = createAxiosClient(config);
         
         logger.log("Sending delete webset request to API");
         
@@ -49,24 +41,10 @@ export function registerDeleteWebsetTool(server: McpServer, config?: { exaApiKey
       } catch (error) {
         logger.error(error);
         
-        if (axios.isAxiosError(error)) {
-          const statusCode = error.response?.status || 'unknown';
-          const errorMessage = error.response?.data?.message || error.message;
-          
-          logger.log(`API error (${statusCode}): ${errorMessage}`);
-          return {
-            content: [{
-              type: "text" as const,
-              text: `Error deleting webset (${statusCode}): ${errorMessage}`
-            }],
-            isError: true,
-          };
-        }
-        
         return {
           content: [{
             type: "text" as const,
-            text: `Error deleting webset: ${error instanceof Error ? error.message : String(error)}`
+            text: formatApiError(error, 'delete_webset')
           }],
           isError: true,
         };

@@ -17,9 +17,9 @@ export interface WebsetItem {
   status: 'pending' | 'verified' | 'failed' | 'enriching' | 'completed';
   properties: {
     name?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  enrichments?: Record<string, any>;
+  enrichments?: Record<string, unknown>;
   createdAt: number;
   updatedAt: number;
 }
@@ -170,7 +170,9 @@ export interface CreateMonitorParams {
     config?: {
       query?: string;
       criteria?: Array<{ description: string }>;
-      entity?: string;
+      entity?: {
+        type: string;
+      };
       count?: number;
       behavior?: 'append' | 'override';
     };
