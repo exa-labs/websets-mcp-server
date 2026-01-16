@@ -1,127 +1,48 @@
+import axios, { AxiosInstance, AxiosError } from "axios";
 import { API_CONFIG } from "../tools/config.js";
 
-interface FetchError extends Error {
-  response?: Response;
-  status?: number;
-  errorData?: {
-    message?: string;
-    details?: string;
-  };
-}
-
 export class ExaApiClient {
-  private baseURL: string;
-  private headers: Record<string, string>;
-  private timeout: number;
+  private client: AxiosInstance;
 
   constructor(apiKey: string) {
     if (!apiKey) {
       throw new Error("EXA_API_KEY is required. Please provide it in the configuration.");
     }
 
-    this.baseURL = API_CONFIG.BASE_URL;
-    this.headers = {
-      'accept': 'application/json',
-      'content-type': 'application/json',
-      'x-api-key': apiKey
-    };
-    this.timeout = 30000;
-  }
-
-  private async request<T>(
-    url: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const fullUrl = `${this.baseURL}${url}`;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-    try {
-      const response = await fetch(fullUrl, {
-        ...options,
-        headers: {
-          ...this.headers,
-          ...options.headers,
-        },
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const error: FetchError = new Error(`HTTP error! status: ${response.status}`);
-        error.response = response;
-        error.status = response.status;
-        
-        // Try to parse error response body
-        try {
-          const errorData = await response.json();
-          error.errorData = {
-            message: errorData?.message,
-            details: errorData?.details,
-          };
-        } catch {
-          // If parsing fails, use status text
-          error.errorData = {
-            message: response.statusText || `HTTP error! status: ${response.status}`,
-          };
-        }
-        
-        throw error;
-      }
-
-      return await response.json();
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
-        const timeoutError: FetchError = new Error('Request timeout');
-        timeoutError.status = 408;
-        throw timeoutError;
-      }
-      throw error;
-    }
+    this.client = axios.create({
+      baseURL: API_CONFIG.BASE_URL,
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'x-api-key': apiKey
+      },
+      timeout: 30000
+    });
   }
 
   async get<T>(url: string, params?: any): Promise<T> {
-    let fullUrl = url;
-    if (params) {
-      const searchParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          searchParams.append(key, String(value));
-        }
-      });
-      const queryString = searchParams.toString();
-      if (queryString) {
-        fullUrl = `${url}?${queryString}`;
-      }
-    }
-    return this.request<T>(fullUrl, { method: 'GET' });
+    const response = await this.client.get<T>(url, { params });
+    return response.data;
   }
 
   async post<T>(url: string, data?: any): Promise<T> {
-    return this.request<T>(url, {
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+    const response = await this.client.post<T>(url, data);
+    return response.data;
   }
 
   async put<T>(url: string, data?: any): Promise<T> {
-    return this.request<T>(url, {
-      method: 'PUT',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+    const response = await this.client.put<T>(url, data);
+    return response.data;
   }
 
   async patch<T>(url: string, data?: any): Promise<T> {
-    return this.request<T>(url, {
-      method: 'PATCH',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+    const response = await this.client.patch<T>(url, data);
+    return response.data;
   }
 
   async delete<T>(url: string): Promise<T> {
-    return this.request<T>(url, { method: 'DELETE' });
+    const response = await this.client.delete<T>(url);
+    return response.data;
   }
 }
 
@@ -138,11 +59,10 @@ export function handleApiError(
 ): McpErrorResponse {
   logger.error(error);
   
-  const fetchError = error as FetchError;
-  if (fetchError.response || fetchError.status) {
-    const statusCode = fetchError.status || fetchError.response?.status || 'unknown';
-    const errorMessage = fetchError.errorData?.message || fetchError.message || 'Unknown error';
-    const errorDetails = fetchError.errorData?.details || '';
+  if (axios.isAxiosError(error)) {
+    const statusCode = error.response?.status || 'unknown';
+    const errorMessage = error.response?.data?.message || error.message;
+    const errorDetails = error.response?.data?.details || '';
     
     logger.log(`API error (${statusCode}): ${errorMessage}`);
     
