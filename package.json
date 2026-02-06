@@ -32,7 +32,12 @@
     "start": "node dist/index.js",
     "dev": "tsc --watch & nodemon dist/index.js",
     "inspector": "npx @modelcontextprotocol/inspector dist/index.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:unit": "vitest run src/handlers/__tests__/{registry,enrichments,monitors,types}.test.ts",
+    "test:integration": "vitest run src/handlers/__tests__/integration/",
+    "test:e2e": "vitest run src/__tests__/e2e/",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.x",
