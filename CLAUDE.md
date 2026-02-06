@@ -9,11 +9,11 @@ Exa Websets MCP Server — a Model Context Protocol server that exposes Exa's We
 ## Build & Development Commands
 
 ```bash
-npm run build              # TypeScript compile to build/ + chmod +x
-npm run watch              # TypeScript watch mode (tsc --watch, outputs to build/)
-npm run start              # Run the server (node build/index.js)
+npm run build              # TypeScript compile to dist/ + chmod +x
+npm run watch              # TypeScript watch mode (tsc --watch, outputs to dist/)
+npm run start              # Run the server (node dist/index.js)
 npm run dev                # Dev mode with auto-restart
-npm run inspector          # Run MCP inspector against build/index.js
+npm run inspector          # Run MCP inspector against dist/index.js
 npm run test               # Run tests (vitest run)
 npx vitest run src/handlers/__tests__/enrichments.test.ts  # Run a single test file
 ```
@@ -79,7 +79,7 @@ AI callers commonly get these wrong:
 
 ## Testing
 
-Tests use **Vitest** with config in `vitest.config.ts` (excludes `build/` dir). Test files live in `src/handlers/__tests__/`. Tests mock the Exa client to verify handler logic, validation, and error formatting.
+Tests use **Vitest** with config in `vitest.config.ts` (excludes `dist/` dir). Test files live in `src/handlers/__tests__/`. Tests mock the Exa client to verify handler logic, validation, and error formatting.
 
 ## Environment
 
