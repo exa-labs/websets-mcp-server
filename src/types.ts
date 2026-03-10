@@ -1,6 +1,7 @@
 
 export interface Webset {
   id: string;
+  dashboardUrl: string;
   externalId?: string;
   name?: string;
   description?: string;

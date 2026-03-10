@@ -8,7 +8,7 @@ import { ExaApiClient, handleApiError } from "../utils/api.js";
 export function registerCreateWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "create_webset",
-    `Create a new Webset collection. Websets are collections of web entities (companies, people, papers) that can be automatically searched, verified, and enriched with custom data.
+    `Create a new Webset collection. Websets are collections of web entities (companies, people, papers) that can be automatically searched, verified, and enriched with custom data. Returns the created webset including a dashboardUrl to view it in the Exa dashboard.
 
 IMPORTANT PARAMETER FORMATS:
 - searchCriteria: MUST be array of objects like [{description: "..."}] (NOT array of strings)

@@ -8,7 +8,7 @@ import { ExaApiClient, handleApiError } from "../utils/api.js";
 export function registerGetWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "get_webset",
-    "Get details about a specific webset by ID or externalId. Returns full webset information including status, item count, and metadata.",
+    "Get details about a specific webset by ID or externalId. Returns full webset information including status, item count, metadata, and dashboardUrl (a link to view the webset in the Exa dashboard).",
     {
       id: z.string().describe("The ID or externalId of the webset"),
       expandItems: z.boolean().optional().describe("Include all items in the response (default: false)")
