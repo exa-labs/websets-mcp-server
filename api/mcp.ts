@@ -89,7 +89,7 @@ function createHandler(config: { exaApiKey?: string; enabledTools?: string[]; de
     (server: any) => {
       initializeMcpServer(server, config);
     },
-    {},
+    { serverInfo: { name: "websets-server", version: "1.0.1" } },
     { basePath: '/api' }
   );
 }
