@@ -17,7 +17,6 @@ IMPORTANT PARAMETER FORMATS:
 
 Example call:
 {
-  "name": "AI Startups",
   "searchQuery": "AI startups in San Francisco",
   "searchCriteria": [{"description": "Founded after 2020"}],
   "enrichments": [
@@ -26,8 +25,6 @@ Example call:
   ]
 }`,
     {
-      name: z.string().optional().describe("Name for the webset"),
-      description: z.string().optional().describe("Description of the webset"),
       externalId: z.string().max(300).optional().describe("Your own identifier for the webset (max 300 chars)"),
       searchQuery: z.string().optional().describe("Natural language query to populate the webset (e.g., 'AI startups in San Francisco')"),
       searchCount: z.number().int().min(1).optional().describe("Number of items to search for (default: 10, min: 1)"),
@@ -42,18 +39,16 @@ Example call:
         })).optional().describe("When format is 'options', the different options to choose from. Example: [{label: 'B2B'}, {label: 'B2C'}, {label: 'B2B2C'}]")
       })).optional().describe("Data enrichments to automatically extract for each item. Example: [{description: 'CEO name', format: 'text'}, {description: 'Company type', format: 'options', options: [{label: 'B2B'}, {label: 'B2C'}]}]")
     },
-    async ({ name, description, externalId, searchQuery, searchCount, searchCriteria, enrichments }) => {
+    async ({ externalId, searchQuery, searchCount, searchCriteria, enrichments }) => {
       const requestId = `create_webset-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const logger = createRequestLogger(requestId, 'create_webset');
       
-      logger.start(`Creating webset${name ? ` "${name}"` : ''}`);
+      logger.start(`Creating webset${searchQuery ? ` for "${searchQuery}"` : ''}`);
       
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
 
         const params: CreateWebsetParams = {
-          name,
-          description,
           externalId
         };
 
@@ -98,7 +93,6 @@ Example call:
               '- searchCount must be a positive number\n\n' +
               'Example:\n' +
               '{\n' +
-              '  "name": "AI Startups",\n' +
               '  "searchQuery": "AI startups in San Francisco",\n' +
               '  "searchCriteria": [{"description": "Founded after 2020"}],\n' +
               '  "enrichments": [\n' +
