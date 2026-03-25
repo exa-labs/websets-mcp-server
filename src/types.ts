@@ -72,8 +72,6 @@ export interface Webhook {
 }
 
 export interface CreateWebsetParams {
-  name?: string;
-  description?: string;
   externalId?: string;
   search?: {
     query: string;
