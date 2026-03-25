@@ -4,15 +4,13 @@ import { initializeMcpServer } from '../src/mcp-handler.js';
 /**
  * Vercel Function entry point for MCP server
  *
- * Supports API key via header (recommended) or URL query parameter:
- * - Authorization: Bearer YOUR_KEY
+ * Users must provide their own API key via:
+ * - Authorization: Bearer YOUR_KEY (recommended)
  * - ?exaApiKey=YOUR_KEY
  *
  * Other URL query parameters:
  * - ?tools=create_webset,list_websets - Enable specific tools
  * - ?debug=true - Enable debug logging
- *
- * Priority: header > URL query parameter > environment variable.
  *
  * A fresh handler is created per request to ensure each request gets its own
  * configuration (no API key leakage between users).
@@ -30,7 +28,7 @@ function getApiKeyFromHeader(request: Request): string | undefined {
 }
 
 function getConfigFromRequest(request: Request) {
-  let exaApiKey = process.env.EXA_API_KEY;
+  let exaApiKey: string | undefined;
   let enabledTools: string[] | undefined;
   let debug = process.env.DEBUG === 'true';
 
