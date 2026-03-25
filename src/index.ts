@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { log } from "./utils/logger.js";
 import { initializeMcpServer } from "./mcp-handler.js";
 
 // Configuration schema for the EXA API key and tool selection
@@ -55,13 +54,6 @@ export default function ({ config }: { config: z.infer<typeof configSchema> }) {
       debug: config.debug
     };
 
-    if (config.debug) {
-      log("Starting Websets MCP Server (Smithery) in debug mode");
-      if (parsedEnabledTools) {
-        log(`Enabled tools from config: ${parsedEnabledTools.join(', ')}`);
-      }
-    }
-
     // Create MCP server
     const server = new McpServer({
       name: "websets-server",
@@ -69,16 +61,14 @@ export default function ({ config }: { config: z.infer<typeof configSchema> }) {
       version: "1.0.1"
     });
 
-    log("Server initialized with modern MCP SDK and Smithery CLI support");
-
-    // Initialize server with shared logic
+    // Initialize server with shared logic (handles debug logging internally)
     initializeMcpServer(server, normalizedConfig);
 
     // Return the server object (Smithery CLI handles transport)
     return server.server;
 
   } catch (error) {
-    log(`Server initialization error: ${error instanceof Error ? error.message : String(error)}`);
+    console.error(`Server initialization error: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
 }
