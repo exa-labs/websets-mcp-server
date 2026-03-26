@@ -27,7 +27,6 @@ import { registerCreateImportTool } from "./tools/createImport.js";
 import { registerGetImportTool } from "./tools/getImport.js";
 import { registerListImportsTool } from "./tools/listImports.js";
 import { registerListEventsTool } from "./tools/listEvents.js";
-import { registerCreateExportTool } from "./tools/createExport.js";
 import { log, setDebugEnabled } from "./utils/logger.js";
 
 // Tool registry for managing available tools
@@ -60,7 +59,6 @@ const availableTools = {
   'get_import': { name: 'Get Import', description: 'Get import details and status', enabled: true },
   'list_imports': { name: 'List Imports', description: 'List all imports', enabled: true },
   'list_events': { name: 'List Events', description: 'List system events', enabled: true },
-  'create_export': { name: 'Create Export', description: 'Export webset data', enabled: true },
 };
 
 export interface McpConfig {
@@ -233,11 +231,6 @@ export function initializeMcpServer(server: any, config: McpConfig = {}) {
     if (shouldRegisterTool('list_events')) {
       registerListEventsTool(server, config);
       registeredTools.push('list_events');
-    }
-
-    if (shouldRegisterTool('create_export')) {
-      registerCreateExportTool(server, config);
-      registeredTools.push('create_export');
     }
 
     if (config.debug) {

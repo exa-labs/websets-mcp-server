@@ -34,7 +34,6 @@ const AVAILABLE_TOOLS = [
   'get_import',
   'list_imports',
   'list_events',
-  'create_export',
 ];
 
 const configSchema = {
