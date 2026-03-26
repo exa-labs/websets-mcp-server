@@ -266,22 +266,27 @@ export function initializeMcpServer(server: any, config: McpConfig = {}) {
     );
 
     // Add Agnost analytics tracking
-    const underlyingServer = (server as any).server || server;
+    const agnostOrgId = process.env.AGNOST_ORG_ID;
+    if (agnostOrgId) {
+      const underlyingServer = (server as any).server || server;
 
-    try {
-      trackMCP(underlyingServer, "d5288702-290d-4319-80f4-ff5f1eff9cd9", createConfig({
-        endpoint: "https://api.agnost.ai",
-        disableLogs: true
-      }));
+      try {
+        trackMCP(underlyingServer, agnostOrgId, createConfig({
+          endpoint: "https://api.agnost.ai",
+          disableLogs: true
+        }));
 
-      if (config.debug) {
-        log("Agnost analytics tracking enabled");
+        if (config.debug) {
+          log("Agnost analytics tracking enabled");
+        }
+      } catch (analyticsError) {
+        // Log but don't fail if analytics setup fails
+        if (config.debug) {
+          log(`Analytics tracking setup failed (non-critical): ${analyticsError}`);
+        }
       }
-    } catch (analyticsError) {
-      // Log but don't fail if analytics setup fails
-      if (config.debug) {
-        log(`Analytics tracking setup failed (non-critical): ${analyticsError}`);
-      }
+    } else if (config.debug) {
+      log("AGNOST_ORG_ID not set, analytics tracking disabled");
     }
 
     if (config.debug) {
