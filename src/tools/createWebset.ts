@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { CreateWebsetParams, Webset } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerCreateWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -94,6 +95,7 @@ Example call:
           params.enrichments = enrichments;
         }
         
+        checkpoint('create_webset_request_prepared');
         logger.log("Sending create webset request to API");
         logger.log(`Parameters: ${JSON.stringify(params, null, 2)}`);
         
@@ -103,6 +105,7 @@ Example call:
         );
         
         logger.log(`Created webset: ${response.id}`);
+        checkpoint('create_webset_response_received');
 
         const result = {
           content: [{
@@ -111,6 +114,7 @@ Example call:
           }]
         };
         
+        checkpoint('create_webset_complete');
         logger.complete();
         return result;
       } catch (error) {

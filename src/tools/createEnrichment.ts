@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { WebsetEnrichment, CreateEnrichmentParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerCreateEnrichmentTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -64,6 +65,7 @@ Example call (options format):
           ...(metadata && { metadata })
         };
         
+        checkpoint('create_enrichment_request_prepared');
         logger.log("Sending create enrichment request to API");
         logger.log(`Parameters: ${JSON.stringify(params, null, 2)}`);
         
@@ -73,6 +75,7 @@ Example call (options format):
         );
         
         logger.log(`Created enrichment: ${response.id}`);
+        checkpoint('create_enrichment_response_received');
 
         const result = {
           content: [{
@@ -81,6 +84,7 @@ Example call (options format):
           }]
         };
         
+        checkpoint('create_enrichment_complete');
         logger.complete();
         return result;
       } catch (error) {

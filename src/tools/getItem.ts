@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { WebsetItem } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerGetItemTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -22,6 +23,7 @@ export function registerGetItemTool(server: McpServer, config?: { exaApiKey?: st
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
         
+        checkpoint('get_item_request_prepared');
         logger.log("Sending get item request to API");
         
         const response = await client.get<WebsetItem>(
@@ -29,6 +31,7 @@ export function registerGetItemTool(server: McpServer, config?: { exaApiKey?: st
         );
         
         logger.log(`Retrieved item: ${response.id}`);
+        checkpoint('get_item_response_received');
 
         const result = {
           content: [{
@@ -37,6 +40,7 @@ export function registerGetItemTool(server: McpServer, config?: { exaApiKey?: st
           }]
         };
         
+        checkpoint('get_item_complete');
         logger.complete();
         return result;
       } catch (error) {

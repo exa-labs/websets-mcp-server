@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { ListWebhooksResponse } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerListWebhooksTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -26,6 +27,7 @@ export function registerListWebhooksTool(server: McpServer, config?: { exaApiKey
         if (limit) params.limit = Math.min(limit, 200);
         if (cursor) params.cursor = cursor;
         
+        checkpoint('list_webhooks_request_prepared');
         logger.log("Sending list webhooks request to API");
         
         const response = await client.get<ListWebhooksResponse>(
@@ -34,6 +36,7 @@ export function registerListWebhooksTool(server: McpServer, config?: { exaApiKey
         );
         
         logger.log(`Retrieved ${response.data.length} webhooks`);
+        checkpoint('list_webhooks_response_received');
 
         const result = {
           content: [{
@@ -42,6 +45,7 @@ export function registerListWebhooksTool(server: McpServer, config?: { exaApiKey
           }]
         };
         
+        checkpoint('list_webhooks_complete');
         logger.complete();
         return result;
       } catch (error) {

@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { WebsetExport } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerCreateExportTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -25,6 +26,7 @@ export function registerCreateExportTool(server: McpServer, config?: { exaApiKey
         const params: Record<string, unknown> = {};
         if (format) params.format = format;
         
+        checkpoint('create_export_request_prepared');
         logger.log("Sending create export request to API");
         
         const response = await client.post<WebsetExport>(
@@ -41,6 +43,7 @@ export function registerCreateExportTool(server: McpServer, config?: { exaApiKey
           }]
         };
         
+        checkpoint('create_export_complete');
         logger.complete();
         return result;
       } catch (error) {

@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { WebsetMonitor, UpdateMonitorParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerUpdateMonitorTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -67,6 +68,7 @@ export function registerUpdateMonitorTool(server: McpServer, config?: { exaApiKe
           };
         }
         
+        checkpoint('update_monitor_request_prepared');
         logger.log("Sending update monitor request to API");
         
         const response = await client.patch<WebsetMonitor>(
@@ -75,6 +77,7 @@ export function registerUpdateMonitorTool(server: McpServer, config?: { exaApiKe
         );
         
         logger.log(`Updated monitor: ${response.id}`);
+        checkpoint('update_monitor_response_received');
 
         const result = {
           content: [{
@@ -83,6 +86,7 @@ export function registerUpdateMonitorTool(server: McpServer, config?: { exaApiKe
           }]
         };
         
+        checkpoint('update_monitor_complete');
         logger.complete();
         return result;
       } catch (error) {

@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { ListMonitorsResponse } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerListMonitorsTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -26,6 +27,7 @@ export function registerListMonitorsTool(server: McpServer, config?: { exaApiKey
         if (limit) params.limit = Math.min(limit, API_CONFIG.MAX_LIMIT);
         if (cursor) params.cursor = cursor;
         
+        checkpoint('list_monitors_request_prepared');
         logger.log("Sending list monitors request to API");
         
         const response = await client.get<ListMonitorsResponse>(
@@ -34,6 +36,7 @@ export function registerListMonitorsTool(server: McpServer, config?: { exaApiKey
         );
         
         logger.log(`Retrieved ${response.data.length} monitors`);
+        checkpoint('list_monitors_response_received');
 
         const result = {
           content: [{
@@ -42,6 +45,7 @@ export function registerListMonitorsTool(server: McpServer, config?: { exaApiKey
           }]
         };
         
+        checkpoint('list_monitors_complete');
         logger.complete();
         return result;
       } catch (error) {

@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { WebsetEnrichment } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerGetEnrichmentTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -22,6 +23,7 @@ export function registerGetEnrichmentTool(server: McpServer, config?: { exaApiKe
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
         
+        checkpoint('get_enrichment_request_prepared');
         logger.log("Sending get enrichment request to API");
         
         const response = await client.get<WebsetEnrichment>(
@@ -29,6 +31,7 @@ export function registerGetEnrichmentTool(server: McpServer, config?: { exaApiKe
         );
         
         logger.log(`Retrieved enrichment: ${response.id} (status: ${response.status})`);
+        checkpoint('get_enrichment_response_received');
 
         const result = {
           content: [{
@@ -37,6 +40,7 @@ export function registerGetEnrichmentTool(server: McpServer, config?: { exaApiKe
           }]
         };
         
+        checkpoint('get_enrichment_complete');
         logger.complete();
         return result;
       } catch (error) {

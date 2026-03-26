@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { PreviewWebsetResponse } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerPreviewWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -21,6 +22,7 @@ export function registerPreviewWebsetTool(server: McpServer, config?: { exaApiKe
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
         
+        checkpoint('preview_webset_request_prepared');
         logger.log("Sending preview request to API");
         
         const response = await client.post<PreviewWebsetResponse>(
@@ -29,6 +31,7 @@ export function registerPreviewWebsetTool(server: McpServer, config?: { exaApiKe
         );
         
         logger.log("Preview complete");
+        checkpoint('preview_webset_response_received');
 
         const result = {
           content: [{
@@ -37,6 +40,7 @@ export function registerPreviewWebsetTool(server: McpServer, config?: { exaApiKe
           }]
         };
         
+        checkpoint('preview_webset_complete');
         logger.complete();
         return result;
       } catch (error) {

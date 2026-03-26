@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { Webhook, UpdateWebhookParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerUpdateWebhookTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -30,6 +31,7 @@ export function registerUpdateWebhookTool(server: McpServer, config?: { exaApiKe
           ...(metadata && { metadata })
         };
         
+        checkpoint('update_webhook_request_prepared');
         logger.log("Sending update webhook request to API");
         
         const response = await client.patch<Webhook>(
@@ -38,6 +40,7 @@ export function registerUpdateWebhookTool(server: McpServer, config?: { exaApiKe
         );
         
         logger.log(`Updated webhook: ${response.id}`);
+        checkpoint('update_webhook_response_received');
 
         const result = {
           content: [{
@@ -46,6 +49,7 @@ export function registerUpdateWebhookTool(server: McpServer, config?: { exaApiKe
           }]
         };
         
+        checkpoint('update_webhook_complete');
         logger.complete();
         return result;
       } catch (error) {

@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { WebsetMonitor, CreateMonitorParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerCreateMonitorTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -89,6 +90,7 @@ Example call:
           }
         };
         
+        checkpoint('create_monitor_request_prepared');
         logger.log("Sending create monitor request to API");
         logger.log(`Parameters: ${JSON.stringify(params, null, 2)}`);
         
@@ -98,6 +100,7 @@ Example call:
         );
         
         logger.log(`Created monitor: ${response.id}`);
+        checkpoint('create_monitor_response_received');
 
         const result = {
           content: [{
@@ -106,6 +109,7 @@ Example call:
           }]
         };
         
+        checkpoint('create_monitor_complete');
         logger.complete();
         return result;
       } catch (error) {

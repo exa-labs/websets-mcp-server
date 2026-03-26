@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { Webset } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerDeleteWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -21,6 +22,7 @@ export function registerDeleteWebsetTool(server: McpServer, config?: { exaApiKey
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
         
+        checkpoint('delete_webset_request_prepared');
         logger.log("Sending delete webset request to API");
         
         const response = await client.delete<Webset>(
@@ -28,6 +30,7 @@ export function registerDeleteWebsetTool(server: McpServer, config?: { exaApiKey
         );
         
         logger.log(`Deleted webset: ${id}`);
+        checkpoint('delete_webset_response_received');
 
         const result = {
           content: [{
@@ -36,6 +39,7 @@ export function registerDeleteWebsetTool(server: McpServer, config?: { exaApiKey
           }]
         };
         
+        checkpoint('delete_webset_complete');
         logger.complete();
         return result;
       } catch (error) {
