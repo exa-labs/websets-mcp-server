@@ -33,6 +33,16 @@ export function registerUpdateMonitorTool(server: McpServer, config?: { exaApiKe
       logger.start(`Updating monitor: ${monitorId}`);
       
       try {
+        if (count !== undefined && count < 1) {
+          return {
+            content: [{
+              type: "text" as const,
+              text: `Invalid count: ${count}. Must be at least 1.`
+            }],
+            isError: true,
+          };
+        }
+
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
 
         const params: UpdateMonitorParams = {
@@ -44,14 +54,14 @@ export function registerUpdateMonitorTool(server: McpServer, config?: { exaApiKe
           params.cadence = { cron, ...(timezone && { timezone }) };
         }
 
-        if (query || criteria || entity || count || searchBehavior) {
+        if (query || criteria || entity || count !== undefined || searchBehavior) {
           params.behavior = {
             type: 'search',
             config: {
               ...(query && { query }),
               ...(criteria && { criteria }),
               ...(entity && { entity }),
-              ...(count && { count }),
+              ...(count !== undefined && { count }),
               ...(searchBehavior && { behavior: searchBehavior })
             }
           };
