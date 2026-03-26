@@ -12,7 +12,7 @@ export function registerUpdateWebsetTool(server: McpServer, config?: { exaApiKey
     {
       id: z.string().describe("The ID or externalId of the webset to update"),
       title: z.string().min(1).optional().describe("New title for the webset"),
-      metadata: z.record(z.string().max(1000)).optional().describe("Key-value pairs to associate with the webset. Each value must be a string with max length 1000. Pass null to clear.")
+      metadata: z.record(z.string().max(1000)).nullable().optional().describe("Key-value pairs to associate with the webset. Each value must be a string with max length 1000. Pass null to clear.")
     },
     async ({ id, title, metadata }) => {
       const requestId = `update_webset-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;

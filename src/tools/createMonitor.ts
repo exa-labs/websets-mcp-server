@@ -33,7 +33,7 @@ Example call:
         description: z.string()
       })).optional().describe("Additional criteria for evaluating search results. Each criterion is an object with a 'description' field. Example: [{description: 'Recently received funding'}, {description: 'Hiring engineers'}]"),
       entity: z.object({
-        type: z.string()
+        type: z.enum(['company', 'person', 'article', 'research_paper', 'custom'])
       }).optional().describe("Entity type configuration for the search. Must be an object with a 'type' field. Example: {type: 'company'}"),
       count: z.number().optional().describe("Maximum number of results to find per run"),
       behavior: z.enum(['append', 'override']).optional().describe("How new items should be added: 'append' adds to existing items, 'override' replaces them (default: append)")
