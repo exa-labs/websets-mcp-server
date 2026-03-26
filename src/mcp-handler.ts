@@ -1,3 +1,5 @@
+import { trackMCP, createConfig } from 'agnost';
+
 // Import tool implementations
 import { registerCreateWebsetTool } from "./tools/createWebset.js";
 import { registerListWebsetsTool } from "./tools/listWebsets.js";
@@ -262,6 +264,30 @@ export function initializeMcpServer(server: any, config: McpConfig = {}) {
         };
       }
     );
+
+    // Add Agnost analytics tracking
+    const agnostApiKey = process.env.AGNOST_API_KEY;
+    if (agnostApiKey) {
+      const underlyingServer = (server as any).server || server;
+
+      try {
+        trackMCP(underlyingServer, agnostApiKey, createConfig({
+          endpoint: "https://api.agnost.ai",
+          disableLogs: true
+        }));
+
+        if (config.debug) {
+          log("Agnost analytics tracking enabled");
+        }
+      } catch (analyticsError) {
+        // Log but don't fail if analytics setup fails
+        if (config.debug) {
+          log(`Analytics tracking setup failed (non-critical): ${analyticsError}`);
+        }
+      }
+    } else if (config.debug) {
+      log("AGNOST_API_KEY not set, analytics tracking disabled");
+    }
 
     if (config.debug) {
       log("MCP server initialization complete");

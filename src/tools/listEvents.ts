@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { ListEventsResponse } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerListEventsTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -28,6 +29,7 @@ export function registerListEventsTool(server: McpServer, config?: { exaApiKey?:
         if (cursor) params.cursor = cursor;
         if (type) params.type = type;
         
+        checkpoint('list_events_request_prepared');
         logger.log("Sending list events request to API");
         
         const response = await client.get<ListEventsResponse>(
@@ -36,6 +38,7 @@ export function registerListEventsTool(server: McpServer, config?: { exaApiKey?:
         );
         
         logger.log(`Retrieved ${response.data.length} events`);
+        checkpoint('list_events_response_received');
 
         const result = {
           content: [{
@@ -44,6 +47,7 @@ export function registerListEventsTool(server: McpServer, config?: { exaApiKey?:
           }]
         };
         
+        checkpoint('list_events_complete');
         logger.complete();
         return result;
       } catch (error) {

@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { Import, CreateImportParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerCreateImportTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -49,6 +50,7 @@ Example call:
           ...(csvIdentifier !== undefined && { csv: { identifier: csvIdentifier } })
         };
         
+        checkpoint('create_import_request_prepared');
         logger.log("Sending create import request to API");
         logger.log(`Parameters: ${JSON.stringify(params, null, 2)}`);
         
@@ -58,6 +60,7 @@ Example call:
         );
         
         logger.log(`Created import: ${response.id}`);
+        checkpoint('create_import_response_received');
 
         const result = {
           content: [{
@@ -66,6 +69,7 @@ Example call:
           }]
         };
         
+        checkpoint('create_import_complete');
         logger.complete();
         return result;
       } catch (error) {

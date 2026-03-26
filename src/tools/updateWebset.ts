@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { Webset, UpdateWebsetParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerUpdateWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -28,6 +29,7 @@ export function registerUpdateWebsetTool(server: McpServer, config?: { exaApiKey
           ...(metadata !== undefined && { metadata: metadata || null })
         };
         
+        checkpoint('update_webset_request_prepared');
         logger.log("Sending update webset request to API");
         
         const response = await client.post<Webset>(
@@ -36,6 +38,7 @@ export function registerUpdateWebsetTool(server: McpServer, config?: { exaApiKey
         );
         
         logger.log(`Updated webset: ${response.id}`);
+        checkpoint('update_webset_response_received');
 
         const result = {
           content: [{
@@ -44,6 +47,7 @@ export function registerUpdateWebsetTool(server: McpServer, config?: { exaApiKey
           }]
         };
         
+        checkpoint('update_webset_complete');
         logger.complete();
         return result;
       } catch (error) {

@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { ListItemsResponse } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerListItemsTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -27,6 +28,7 @@ export function registerListItemsTool(server: McpServer, config?: { exaApiKey?: 
         if (limit) params.limit = Math.min(limit, API_CONFIG.MAX_LIMIT);
         if (cursor) params.cursor = cursor;
         
+        checkpoint('list_items_request_prepared');
         logger.log("Sending list items request to API");
         
         const response = await client.get<ListItemsResponse>(
@@ -35,6 +37,7 @@ export function registerListItemsTool(server: McpServer, config?: { exaApiKey?: 
         );
         
         logger.log(`Retrieved ${response.data.length} items`);
+        checkpoint('list_items_response_received');
 
         const result = {
           content: [{
@@ -43,6 +46,7 @@ export function registerListItemsTool(server: McpServer, config?: { exaApiKey?: 
           }]
         };
         
+        checkpoint('list_items_complete');
         logger.complete();
         return result;
       } catch (error) {

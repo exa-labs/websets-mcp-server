@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { WebsetMonitor } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerGetMonitorTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -21,6 +22,7 @@ export function registerGetMonitorTool(server: McpServer, config?: { exaApiKey?:
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
         
+        checkpoint('get_monitor_request_prepared');
         logger.log("Sending get monitor request to API");
         
         const response = await client.get<WebsetMonitor>(
@@ -28,6 +30,7 @@ export function registerGetMonitorTool(server: McpServer, config?: { exaApiKey?:
         );
         
         logger.log(`Retrieved monitor: ${response.id} (status: ${response.status})`);
+        checkpoint('get_monitor_response_received');
 
         const result = {
           content: [{
@@ -36,6 +39,7 @@ export function registerGetMonitorTool(server: McpServer, config?: { exaApiKey?:
           }]
         };
         
+        checkpoint('get_monitor_complete');
         logger.complete();
         return result;
       } catch (error) {

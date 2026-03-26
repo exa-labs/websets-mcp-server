@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { WebsetSearch } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerGetSearchTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -22,6 +23,7 @@ export function registerGetSearchTool(server: McpServer, config?: { exaApiKey?: 
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
         
+        checkpoint('get_search_request_prepared');
         logger.log("Sending get search request to API");
         
         const response = await client.get<WebsetSearch>(
@@ -29,6 +31,7 @@ export function registerGetSearchTool(server: McpServer, config?: { exaApiKey?: 
         );
         
         logger.log(`Retrieved search: ${response.id} (status: ${response.status})`);
+        checkpoint('get_search_response_received');
 
         const result = {
           content: [{
@@ -37,6 +40,7 @@ export function registerGetSearchTool(server: McpServer, config?: { exaApiKey?: 
           }]
         };
         
+        checkpoint('get_search_complete');
         logger.complete();
         return result;
       } catch (error) {

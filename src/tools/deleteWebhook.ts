@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { Webhook } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerDeleteWebhookTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -21,6 +22,7 @@ export function registerDeleteWebhookTool(server: McpServer, config?: { exaApiKe
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
         
+        checkpoint('delete_webhook_request_prepared');
         logger.log("Sending delete webhook request to API");
         
         const response = await client.delete<Webhook>(
@@ -28,6 +30,7 @@ export function registerDeleteWebhookTool(server: McpServer, config?: { exaApiKe
         );
         
         logger.log(`Deleted webhook: ${webhookId}`);
+        checkpoint('delete_webhook_response_received');
 
         const result = {
           content: [{
@@ -36,6 +39,7 @@ export function registerDeleteWebhookTool(server: McpServer, config?: { exaApiKe
           }]
         };
         
+        checkpoint('delete_webhook_complete');
         logger.complete();
         return result;
       } catch (error) {

@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { Webhook, CreateWebhookParams } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerCreateWebhookTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -37,6 +38,7 @@ Example call:
           ...(metadata && { metadata })
         };
         
+        checkpoint('create_webhook_request_prepared');
         logger.log("Sending create webhook request to API");
         
         const response = await client.post<Webhook>(
@@ -45,6 +47,7 @@ Example call:
         );
         
         logger.log(`Created webhook: ${response.id}`);
+        checkpoint('create_webhook_response_received');
 
         const result = {
           content: [{
@@ -53,6 +56,7 @@ Example call:
           }]
         };
         
+        checkpoint('create_webhook_complete');
         logger.complete();
         return result;
       } catch (error) {

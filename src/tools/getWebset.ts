@@ -4,6 +4,7 @@ import { API_CONFIG } from "./config.js";
 import { Webset } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
+import { checkpoint } from "agnost";
 
 export function registerGetWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
@@ -27,6 +28,7 @@ export function registerGetWebsetTool(server: McpServer, config?: { exaApiKey?: 
           params.expand = ['items'];
         }
         
+        checkpoint('get_webset_request_prepared');
         logger.log("Sending get webset request to API");
         
         const response = await client.get<Webset>(
@@ -35,6 +37,7 @@ export function registerGetWebsetTool(server: McpServer, config?: { exaApiKey?: 
         );
         
         logger.log(`Retrieved webset: ${response.id}`);
+        checkpoint('get_webset_response_received');
 
         const result = {
           content: [{
@@ -43,6 +46,7 @@ export function registerGetWebsetTool(server: McpServer, config?: { exaApiKey?: 
           }]
         };
         
+        checkpoint('get_webset_complete');
         logger.complete();
         return result;
       } catch (error) {
