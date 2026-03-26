@@ -1,23 +1,23 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
-import { ListWebsetsResponse } from "../types.js";
+import { ListImportsResponse } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
 
-export function registerListWebsetsTool(server: McpServer, config?: { exaApiKey?: string }): void {
+export function registerListImportsTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
-    "list_websets",
-    "List all websets in your account. Returns a paginated list of webset collections with their current status, searches, enrichments, monitors, imports, and metadata.",
+    "list_imports",
+    "List all imports. Returns a paginated list of imports with their status and metadata.",
     {
-      limit: z.number().optional().describe("Number of websets to return (default: 25, max: 100)"),
+      limit: z.number().optional().describe("Number of imports to return (default: 25, max: 100)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response")
     },
     async ({ limit, cursor }) => {
-      const requestId = `list_websets-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      const logger = createRequestLogger(requestId, 'list_websets');
+      const requestId = `list_imports-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      const logger = createRequestLogger(requestId, 'list_imports');
       
-      logger.start("Listing websets");
+      logger.start("Listing imports");
       
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
@@ -26,14 +26,14 @@ export function registerListWebsetsTool(server: McpServer, config?: { exaApiKey?
         if (limit) params.limit = Math.min(limit, API_CONFIG.MAX_LIMIT);
         if (cursor) params.cursor = cursor;
         
-        logger.log("Sending list websets request to API");
+        logger.log("Sending list imports request to API");
         
-        const response = await client.get<ListWebsetsResponse>(
-          API_CONFIG.ENDPOINTS.WEBSETS,
+        const response = await client.get<ListImportsResponse>(
+          API_CONFIG.ENDPOINTS.IMPORTS,
           params
         );
         
-        logger.log(`Retrieved ${response.data.length} websets`);
+        logger.log(`Retrieved ${response.data.length} imports`);
 
         const result = {
           content: [{
@@ -45,7 +45,7 @@ export function registerListWebsetsTool(server: McpServer, config?: { exaApiKey?
         logger.complete();
         return result;
       } catch (error) {
-        return handleApiError(error, logger, 'listing websets');
+        return handleApiError(error, logger, 'listing imports');
       }
     }
   );
