@@ -11,8 +11,10 @@ export function registerCreateSearchTool(server: McpServer, config?: { exaApiKey
     `Create a new search to find and add items to a webset. The search will discover entities matching your query and criteria.
 
 IMPORTANT PARAMETER FORMATS:
-- entity: MUST be an object like {type: "company"} (NOT a string)
+- entity: MUST be an object like {type: "company"} (NOT a string). For "custom" type, include description: {type: "custom", description: "SaaS tools"}
 - criteria: MUST be array of objects like [{description: "..."}] (NOT array of strings)
+- exclude: Array of sources like [{source: "webset", id: "webset_123"}]
+- scope: Object for scoped/hop searches: {source: "import", id: "import_123", relationship: "investors of these companies"}
 
 Example call:
 {
@@ -27,16 +29,26 @@ Example call:
       query: z.string().describe("Natural language query describing what to search for (e.g., 'AI startups in San Francisco')"),
       count: z.number().int().min(1).optional().describe("Number of items to find (default: 10, min: 1)"),
       entity: z.object({
-        type: z.enum(['company', 'person', 'article', 'research_paper', 'custom']).describe("Type of entity to search for")
-      }).optional().describe("Entity type to search for. Must be an object with a 'type' field. Example: {type: 'company'}"),
+        type: z.enum(['company', 'person', 'article', 'research_paper', 'custom']).describe("Type of entity to search for"),
+        description: z.string().optional().describe("Required when type is 'custom'. Describes the entity type (2-200 chars).")
+      }).optional().describe("Entity type to search for. Example: {type: 'company'} or {type: 'custom', description: 'SaaS tools'}"),
       criteria: z.array(z.object({
         description: z.string()
       })).optional().describe("Additional criteria for evaluating search results. Each criterion is an object with a 'description' field. Example: [{description: 'Company is profitable'}, {description: 'Has raised Series A or later'}]"),
       behavior: z.enum(['override', 'append']).optional().describe("'override' replaces existing items, 'append' adds to them (default: override)"),
+      exclude: z.array(z.object({
+        source: z.enum(['import', 'webset']),
+        id: z.string()
+      })).optional().describe("Exclude results found in these imports or websets. Example: [{source: 'webset', id: 'webset_123'}]"),
+      scope: z.object({
+        source: z.enum(['import', 'webset']),
+        id: z.string(),
+        relationship: z.string().optional().describe("For hop searches — describes the relationship to traverse (e.g., 'investors of these companies')")
+      }).optional().describe("Scope the search to items within an existing import or webset. Enables hop searches with relationship."),
       recall: z.boolean().optional().describe("Whether to compute recall metrics for the search"),
       metadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with this search")
     },
-    async ({ websetId, query, count, entity, criteria, behavior, recall, metadata }) => {
+    async ({ websetId, query, count, entity, criteria, behavior, exclude, scope, recall, metadata }) => {
       const requestId = `create_search-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const logger = createRequestLogger(requestId, 'create_search');
       
@@ -51,6 +63,8 @@ Example call:
           ...(entity && { entity }),
           ...(criteria && { criteria }),
           ...(behavior && { behavior }),
+          ...(exclude && { exclude }),
+          ...(scope && { scope }),
           ...(recall !== undefined && { recall }),
           ...(metadata && { metadata })
         };
@@ -80,6 +94,7 @@ Example call:
             return '\n\nCommon issues:\n' +
               '- criteria must be array of objects: [{description: "criterion"}]\n' +
               '- entity must be object: {type: "company"}\n' +
+              '- entity type "custom" requires a description field: {type: "custom", description: "..."}\n' +
               '- count must be a positive number\n' +
               '- behavior must be "override" or "append"\n\n' +
               'Example:\n' +

@@ -20,6 +20,17 @@ const AVAILABLE_TOOLS = [
   'get_enrichment',
   'cancel_enrichment',
   'create_monitor',
+  'get_monitor',
+  'update_monitor',
+  'delete_monitor',
+  'list_monitors',
+  'preview_webset',
+  'create_webhook',
+  'create_import',
+  'get_import',
+  'list_imports',
+  'list_events',
+  'create_export',
 ];
 
 const configSchema = {
