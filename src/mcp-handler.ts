@@ -19,6 +19,10 @@ import { registerDeleteMonitorTool } from "./tools/deleteMonitor.js";
 import { registerListMonitorsTool } from "./tools/listMonitors.js";
 import { registerPreviewWebsetTool } from "./tools/previewWebset.js";
 import { registerCreateWebhookTool } from "./tools/createWebhook.js";
+import { registerGetWebhookTool } from "./tools/getWebhook.js";
+import { registerUpdateWebhookTool } from "./tools/updateWebhook.js";
+import { registerDeleteWebhookTool } from "./tools/deleteWebhook.js";
+import { registerListWebhooksTool } from "./tools/listWebhooks.js";
 import { registerCreateImportTool } from "./tools/createImport.js";
 import { registerGetImportTool } from "./tools/getImport.js";
 import { registerListImportsTool } from "./tools/listImports.js";
@@ -48,6 +52,10 @@ const availableTools = {
   'list_monitors': { name: 'List Monitors', description: 'List all monitors', enabled: true },
   'preview_webset': { name: 'Preview Webset', description: 'Preview how a search query will be interpreted', enabled: true },
   'create_webhook': { name: 'Create Webhook', description: 'Create a webhook for webset events', enabled: true },
+  'get_webhook': { name: 'Get Webhook', description: 'Get webhook details', enabled: true },
+  'update_webhook': { name: 'Update Webhook', description: 'Update a webhook', enabled: true },
+  'delete_webhook': { name: 'Delete Webhook', description: 'Delete a webhook', enabled: true },
+  'list_webhooks': { name: 'List Webhooks', description: 'List all webhooks', enabled: true },
   'create_import': { name: 'Create Import', description: 'Create an import to upload your own data', enabled: true },
   'get_import': { name: 'Get Import', description: 'Get import details and status', enabled: true },
   'list_imports': { name: 'List Imports', description: 'List all imports', enabled: true },
@@ -185,6 +193,26 @@ export function initializeMcpServer(server: any, config: McpConfig = {}) {
     if (shouldRegisterTool('create_webhook')) {
       registerCreateWebhookTool(server, config);
       registeredTools.push('create_webhook');
+    }
+
+    if (shouldRegisterTool('get_webhook')) {
+      registerGetWebhookTool(server, config);
+      registeredTools.push('get_webhook');
+    }
+
+    if (shouldRegisterTool('update_webhook')) {
+      registerUpdateWebhookTool(server, config);
+      registeredTools.push('update_webhook');
+    }
+
+    if (shouldRegisterTool('delete_webhook')) {
+      registerDeleteWebhookTool(server, config);
+      registeredTools.push('delete_webhook');
+    }
+
+    if (shouldRegisterTool('list_webhooks')) {
+      registerListWebhooksTool(server, config);
+      registeredTools.push('list_webhooks');
     }
 
     if (shouldRegisterTool('create_import')) {

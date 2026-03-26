@@ -8,7 +8,7 @@ import { ExaApiClient, handleApiError } from "../utils/api.js";
 export function registerListWebsetsTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "list_websets",
-    "List all websets in your account. Returns a paginated list of webset collections with their current status, item counts, and dashboardUrl (a link to view each webset in the Exa dashboard).",
+    "List all websets in your account. Returns a paginated list of webset collections with their current status, searches, enrichments, monitors, imports, and metadata.",
     {
       limit: z.number().optional().describe("Number of websets to return (default: 25, max: 100)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response")
@@ -22,7 +22,7 @@ export function registerListWebsetsTool(server: McpServer, config?: { exaApiKey?
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
 
-        const params: Record<string, any> = {};
+        const params: Record<string, unknown> = {};
         if (limit) params.limit = Math.min(limit, API_CONFIG.MAX_LIMIT);
         if (cursor) params.cursor = cursor;
         

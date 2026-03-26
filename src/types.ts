@@ -148,6 +148,17 @@ export interface Import {
   uploadValidUntil: string;
 }
 
+export interface WebsetExport {
+  id: string;
+  object: 'export';
+  websetId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  format: 'csv' | 'json';
+  downloadUrl?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface WebsetEvent {
   id: string;
   object: 'event';

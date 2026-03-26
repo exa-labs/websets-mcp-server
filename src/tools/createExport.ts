@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { API_CONFIG } from "./config.js";
+import { WebsetExport } from "../types.js";
 import { createRequestLogger } from "../utils/logger.js";
 import { ExaApiClient, handleApiError } from "../utils/api.js";
 
@@ -26,7 +27,7 @@ export function registerCreateExportTool(server: McpServer, config?: { exaApiKey
         
         logger.log("Sending create export request to API");
         
-        const response = await client.post<Record<string, unknown>>(
+        const response = await client.post<WebsetExport>(
           API_CONFIG.ENDPOINTS.WEBSET_EXPORTS(websetId),
           params
         );

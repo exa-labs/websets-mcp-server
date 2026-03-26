@@ -22,7 +22,7 @@ export function registerGetWebsetTool(server: McpServer, config?: { exaApiKey?: 
       try {
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
 
-        const params: Record<string, any> = {};
+        const params: Record<string, unknown> = {};
         if (expandItems) {
           params.expand = ['items'];
         }
