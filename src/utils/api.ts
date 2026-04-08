@@ -67,7 +67,9 @@ export function handleApiError(
     logger.log(`API error (${statusCode}): ${errorMessage}`);
     
     let helpText = '';
-    if (helpTextGenerator && typeof statusCode === 'number') {
+    if (typeof statusCode === 'number' && statusCode === 401) {
+      helpText = '\n\nYour API key does not have access to the Websets API. Please upgrade to a Pro plan at https://exa.ai/pricing';
+    } else if (helpTextGenerator && typeof statusCode === 'number') {
       helpText = helpTextGenerator(statusCode);
     }
     

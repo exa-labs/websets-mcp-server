@@ -9,9 +9,13 @@ import { checkpoint } from "agnost";
 export function registerGetWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "get_webset",
-    "Get details about a specific webset by ID or externalId. Returns full webset information including status, searches, enrichments, monitors, imports, and metadata.",
+    `Get details about a specific webset by ID or externalId. Returns full webset information including status, searches, enrichments, monitors, imports, and metadata.
+
+REQUIRED: You must pass the "id" parameter. Use the webset ID returned from create_webset (e.g. "ws_abc123") or an externalId you assigned.
+
+TIP: After creating a webset, wait at least 5-10 seconds before polling with get_webset. If the webset status is not "idle", wait another 10 seconds before checking again rather than polling rapidly.`,
     {
-      id: z.string().describe("The ID or externalId of the webset"),
+      id: z.string().describe("Required. The webset ID (e.g. 'ws_abc123') or externalId. This is returned in the create_webset response."),
       expandItems: z.boolean().optional().describe("Include all items in the response (default: false)")
     },
     async ({ id, expandItems }) => {
