@@ -27,7 +27,9 @@ Example call:
     {"description": "CEO name", "format": "text"},
     {"description": "Company stage", "format": "options", "options": [{"label": "Seed"}, {"label": "Series A"}]}
   ]
-}`,
+}
+
+AFTER CREATING: The response includes the webset ID. The webset will take time to populate. Wait at least 10 seconds before polling with get_webset. If status is not "idle", wait another 10 seconds before checking again.`,
     {
       externalId: z.string().max(300).optional().describe("Your own identifier for the webset (max 300 chars)"),
       searchQuery: z.string().optional().describe("Natural language query to populate the webset (e.g., 'AI startups in San Francisco')"),
@@ -110,7 +112,7 @@ Example call:
         const result = {
           content: [{
             type: "text" as const,
-            text: JSON.stringify(response, null, 2)
+            text: JSON.stringify(response, null, 2) + '\n\n---\nWebset created successfully. It will take some time to populate. Wait at least 10 seconds before checking status with get_webset. If status is not "idle", wait another 10 seconds before polling again.'
           }]
         };
         
