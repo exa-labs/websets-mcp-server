@@ -11,7 +11,6 @@ export const API_CONFIG = {
     WEBSET_SEARCH_BY_ID: (websetId: string, searchId: string) => `/v0/websets/${websetId}/searches/${searchId}`,
     WEBSET_ENRICHMENTS: (websetId: string) => `/v0/websets/${websetId}/enrichments`,
     WEBSET_ENRICHMENT_BY_ID: (websetId: string, enrichmentId: string) => `/v0/websets/${websetId}/enrichments/${enrichmentId}`,
-    WEBSET_EXPORTS: (websetId: string) => `/v0/websets/${websetId}/exports`,
     MONITORS: '/v0/monitors',
     MONITOR_BY_ID: (id: string) => `/v0/monitors/${id}`,
     WEBHOOKS: '/v0/webhooks',
