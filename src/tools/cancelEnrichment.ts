@@ -9,7 +9,7 @@ import { checkpoint } from "agnost";
 export function registerCancelEnrichmentTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "cancel_enrichment",
-    "Cancel a running enrichment operation. This will stop the enrichment from processing more items.",
+    "Cancel a running enrichment operation. Only enrichments with status 'running' can be canceled; enrichments still in 'pending' status are unaffected.",
     {
       websetId: z.string().describe("The ID or externalId of the webset"),
       enrichmentId: z.string().describe("The ID of the enrichment to cancel")
