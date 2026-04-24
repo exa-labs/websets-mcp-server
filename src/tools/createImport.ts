@@ -28,7 +28,7 @@ Example call:
         description: z.string().optional().describe("Required when type is 'custom'. Describes the entity type (2-200 chars).")
       }).describe("Entity type of the imported data. Example: {type: 'company'}"),
       title: z.string().optional().describe("Title for the import"),
-      metadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with this import"),
+      metadata: z.record(z.coerce.string(), z.coerce.string()).optional().describe("Key-value pairs to associate with this import"),
       csvIdentifier: z.number().optional().describe("Column index (0-based) containing the key identifier (e.g., URL). If not provided, we infer it.")
     },
     async ({ format, size, count, entity, title, metadata, csvIdentifier }) => {

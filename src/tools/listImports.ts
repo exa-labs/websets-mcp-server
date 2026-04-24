@@ -11,7 +11,7 @@ export function registerListImportsTool(server: McpServer, config?: { exaApiKey?
     "list_imports",
     "List all imports. Returns a paginated list of imports with their status and metadata.",
     {
-      limit: z.number().optional().describe("Number of imports to return (default: 25, max: 100)"),
+      limit: z.coerce.number().optional().describe("Number of imports to return (default: 25, max: 100)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response")
     },
     async ({ limit, cursor }) => {

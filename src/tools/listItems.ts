@@ -12,7 +12,7 @@ export function registerListItemsTool(server: McpServer, config?: { exaApiKey?: 
     "List all items in a webset. Returns entities (companies, people, papers) that have been discovered and verified in the collection.",
     {
       websetId: z.string().describe("The ID or externalId of the webset"),
-      limit: z.number().optional().describe("Number of items to return (default: 25, max: 100)"),
+      limit: z.coerce.number().optional().describe("Number of items to return (default: 25, max: 100)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response")
     },
     async ({ websetId, limit, cursor }) => {

@@ -11,7 +11,7 @@ export function registerListWebsetsTool(server: McpServer, config?: { exaApiKey?
     "list_websets",
     "List all websets in your account. Returns a paginated list of webset collections with their current status, searches, enrichments, imports, and metadata.",
     {
-      limit: z.number().optional().describe("Number of websets to return (default: 25, max: 100)"),
+      limit: z.coerce.number().optional().describe("Number of websets to return (default: 25, max: 100)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response")
     },
     async ({ limit, cursor }) => {

@@ -14,7 +14,7 @@ export function registerUpdateWebhookTool(server: McpServer, config?: { exaApiKe
       webhookId: z.string().describe("The ID of the webhook to update"),
       url: z.string().url().optional().describe("New URL to send webhook events to"),
       events: z.array(z.string()).min(1).optional().describe("New list of event types to subscribe to"),
-      metadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with this webhook")
+      metadata: z.record(z.coerce.string(), z.coerce.string()).optional().describe("Key-value pairs to associate with this webhook")
     },
     async ({ webhookId, url, events, metadata }) => {
       const requestId = `update_webhook-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;

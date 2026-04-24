@@ -26,7 +26,7 @@ Example call (options format):
       options: z.array(z.object({
         label: z.string()
       })).optional().describe("When format is 'options', the different options for the enrichment agent to choose from (1-150 options). Each option is an object with a 'label' field. Example: [{label: 'Small (1-50)'}, {label: 'Medium (51-200)'}, {label: 'Large (201+)'}]"),
-      metadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with this enrichment")
+      metadata: z.record(z.coerce.string(), z.coerce.string()).optional().describe("Key-value pairs to associate with this enrichment")
     },
     async ({ websetId, description, format, options, metadata }) => {
       const requestId = `create_enrichment-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;

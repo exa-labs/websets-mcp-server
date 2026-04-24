@@ -33,14 +33,14 @@ AFTER CREATING: The response includes the webset ID. The webset will take time t
     {
       externalId: z.string().max(300).optional().describe("Your own identifier for the webset (max 300 chars)"),
       searchQuery: z.string().optional().describe("Natural language query to populate the webset (e.g., 'AI startups in San Francisco')"),
-      searchCount: z.number().int().min(1).optional().describe("Number of items to search for (default: 10, min: 1)"),
+      searchCount: z.coerce.number().int().min(1).optional().describe("Number of items to search for (default: 10, min: 1)"),
       searchEntity: z.object({
         type: z.enum(['company', 'person', 'article', 'research_paper', 'custom']).describe("Type of entity to search for"),
         description: z.string().optional().describe("Required when type is 'custom'. Describes the entity type (2-200 chars).")
       }).optional().describe("Entity type for the search. Example: {type: 'company'} or {type: 'custom', description: 'SaaS tools'}"),
       searchCriteria: z.array(z.object({
-        description: z.string()
-      })).optional().describe("Additional criteria to filter search results. Each criterion is an object with a 'description' field. Example: [{description: 'Founded after 2020'}, {description: 'Has more than 50 employees'}]"),
+        description: z.string().max(1000)
+      })).max(5).optional().describe("Additional criteria to filter search results. Each criterion is an object with a 'description' field. Example: [{description: 'Founded after 2020'}, {description: 'Has more than 50 employees'}]"),
       searchBehavior: z.enum(['override', 'append']).optional().describe("'override' replaces existing items, 'append' adds to them (default: override)"),
       searchExclude: z.array(z.object({
         source: z.enum(['import', 'webset']),
@@ -53,7 +53,7 @@ AFTER CREATING: The response includes the webset ID. The webset will take time t
       }).optional().describe("Scope the search to items within an existing import or webset. Enables hop searches with relationship."),
       searchRecall: z.boolean().optional().describe("Whether to compute recall metrics for the search"),
       searchMaxPeoplePerCompany: z.number().int().min(1).optional().describe("Soft cap on how many people from the same employer to include in person searches"),
-      searchMetadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with the search"),
+      searchMetadata: z.record(z.coerce.string(), z.coerce.string()).optional().describe("Key-value pairs to associate with the search"),
       enrichments: z.array(z.object({
         description: z.string().describe("What data to extract (e.g., 'Annual revenue in USD', 'Number of full-time employees')"),
         format: z.enum(['text', 'date', 'number', 'options', 'email', 'phone', 'url']).optional().describe("Format of the enrichment response"),
@@ -61,7 +61,7 @@ AFTER CREATING: The response includes the webset ID. The webset will take time t
           label: z.string()
         })).optional().describe("When format is 'options', the different options to choose from. Example: [{label: 'B2B'}, {label: 'B2C'}, {label: 'B2B2C'}]")
       })).optional().describe("Data enrichments to automatically extract for each item. Example: [{description: 'CEO name', format: 'text'}, {description: 'Company type', format: 'options', options: [{label: 'B2B'}, {label: 'B2C'}]}]"),
-      metadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with this webset"),
+      metadata: z.record(z.coerce.string(), z.coerce.string()).optional().describe("Key-value pairs to associate with this webset"),
       excludes: z.array(z.object({
         source: z.enum(['import', 'webset']),
         id: z.string()
