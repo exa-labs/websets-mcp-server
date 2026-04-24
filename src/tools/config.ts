@@ -18,6 +18,5 @@ export const API_CONFIG = {
     EVENTS: '/v0/events'
   },
   DEFAULT_LIMIT: 25,
-  MAX_LIMIT: 100,
-  MAX_LIMIT_WEBSETS: 200
+  MAX_LIMIT: 100
 } as const;
