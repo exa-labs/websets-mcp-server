@@ -9,7 +9,7 @@ import { checkpoint } from "agnost";
 export function registerGetWebsetTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "get_webset",
-    `Get details about a specific webset by ID or externalId. Returns full webset information including status, searches, enrichments, monitors, imports, and metadata.
+    `Get details about a specific webset by ID or externalId. Returns full webset information including status, searches, enrichments, imports, and metadata.
 
 REQUIRED: You must pass the "id" parameter. Use the webset ID returned from create_webset (e.g. "ws_abc123") or an externalId you assigned.
 

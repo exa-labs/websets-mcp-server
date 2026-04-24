@@ -42,7 +42,7 @@ export function registerListItemsTool(server: McpServer, config?: { exaApiKey?: 
         const result = {
           content: [{
             type: "text" as const,
-            text: JSON.stringify(response.data, null, 2)
+            text: JSON.stringify(response, null, 2)
           }]
         };
         

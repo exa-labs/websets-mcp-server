@@ -9,9 +9,9 @@ import { checkpoint } from "agnost";
 export function registerListWebsetsTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "list_websets",
-    "List all websets in your account. Returns a paginated list of webset collections with their current status, searches, enrichments, monitors, imports, and metadata.",
+    "List all websets in your account. Returns a paginated list of webset collections with their current status, searches, enrichments, imports, and metadata.",
     {
-      limit: z.number().optional().describe("Number of websets to return (default: 25, max: 100)"),
+      limit: z.number().optional().describe("Number of websets to return (default: 25, max: 200)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response")
     },
     async ({ limit, cursor }) => {
@@ -24,7 +24,7 @@ export function registerListWebsetsTool(server: McpServer, config?: { exaApiKey?
         const client = new ExaApiClient(config?.exaApiKey || process.env.EXA_API_KEY || '');
 
         const params: Record<string, unknown> = {};
-        if (limit) params.limit = Math.min(limit, API_CONFIG.MAX_LIMIT);
+        if (limit) params.limit = Math.min(limit, API_CONFIG.MAX_LIMIT_WEBSETS);
         if (cursor) params.cursor = cursor;
         
         checkpoint('list_websets_request_prepared');

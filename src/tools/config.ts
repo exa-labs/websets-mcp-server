@@ -11,8 +11,6 @@ export const API_CONFIG = {
     WEBSET_SEARCH_BY_ID: (websetId: string, searchId: string) => `/v0/websets/${websetId}/searches/${searchId}`,
     WEBSET_ENRICHMENTS: (websetId: string) => `/v0/websets/${websetId}/enrichments`,
     WEBSET_ENRICHMENT_BY_ID: (websetId: string, enrichmentId: string) => `/v0/websets/${websetId}/enrichments/${enrichmentId}`,
-    MONITORS: '/v0/monitors',
-    MONITOR_BY_ID: (id: string) => `/v0/monitors/${id}`,
     WEBHOOKS: '/v0/webhooks',
     WEBHOOK_BY_ID: (id: string) => `/v0/webhooks/${id}`,
     IMPORTS: '/v0/imports',
@@ -20,5 +18,6 @@ export const API_CONFIG = {
     EVENTS: '/v0/events'
   },
   DEFAULT_LIMIT: 25,
-  MAX_LIMIT: 100
+  MAX_LIMIT: 100,
+  MAX_LIMIT_WEBSETS: 200
 } as const;
