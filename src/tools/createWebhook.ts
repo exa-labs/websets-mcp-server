@@ -19,10 +19,9 @@ Example call:
     {
       url: z.string().url().describe("The URL to send webhook events to"),
       events: z.array(z.string()).describe("List of event types to subscribe to (e.g., 'webset.search.completed', 'webset.enrichment.completed', 'webset.idle')"),
-      secret: z.string().optional().describe("A secret string used to sign webhook payloads for verification"),
       metadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with this webhook")
     },
-    async ({ url, events, secret, metadata }) => {
+    async ({ url, events, metadata }) => {
       const requestId = `create_webhook-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const logger = createRequestLogger(requestId, 'create_webhook');
       
@@ -34,7 +33,6 @@ Example call:
         const params: CreateWebhookParams = {
           url,
           events,
-          ...(secret && { secret }),
           ...(metadata && { metadata })
         };
         

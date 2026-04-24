@@ -22,7 +22,7 @@ export interface Webset {
   searches: WebsetSearch[];
   imports: Import[];
   enrichments: WebsetEnrichment[];
-  monitors: WebsetMonitor[];
+
   excludes?: ExcludeSource[];
   metadata: Record<string, string>;
   createdAt: string;
@@ -94,29 +94,6 @@ export interface WebsetEnrichment {
   updatedAt: string;
 }
 
-export interface WebsetMonitor {
-  id: string;
-  object: 'monitor';
-  websetId: string;
-  status: 'enabled' | 'disabled';
-  cadence: {
-    cron: string;
-    timezone: string;
-  };
-  behavior: {
-    type: 'search';
-    config?: {
-      query?: string;
-      criteria?: Array<{ description: string }>;
-      entity?: Entity;
-      count?: number;
-      behavior?: 'append' | 'override';
-    };
-  };
-  metadata: Record<string, string>;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface Webhook {
   id: string;
@@ -184,6 +161,8 @@ export interface CreateWebsetParams {
       relationship?: string;
     };
     recall?: boolean;
+    maxPeoplePerCompany?: number;
+    metadata?: Record<string, string>;
   };
   enrichments?: Array<{
     description: string;
@@ -212,6 +191,7 @@ export interface CreateSearchParams {
     relationship?: string;
   };
   recall?: boolean;
+  maxPeoplePerCompany?: number;
   metadata?: Record<string, string>;
 }
 
@@ -222,48 +202,10 @@ export interface CreateEnrichmentParams {
   metadata?: Record<string, string>;
 }
 
-export interface CreateMonitorParams {
-  websetId: string;
-  cadence: {
-    cron: string;
-    timezone?: string;
-  };
-  behavior: {
-    type: 'search';
-    config?: {
-      query?: string;
-      criteria?: Array<{ description: string }>;
-      entity?: Entity;
-      count?: number;
-      behavior?: 'append' | 'override';
-    };
-  };
-  metadata?: Record<string, string>;
-}
-
-export interface UpdateMonitorParams {
-  cadence?: {
-    cron: string;
-    timezone?: string;
-  };
-  behavior?: {
-    type: 'search';
-    config?: {
-      query?: string;
-      criteria?: Array<{ description: string }>;
-      entity?: Entity;
-      count?: number;
-      behavior?: 'append' | 'override';
-    };
-  };
-  status?: 'enabled' | 'disabled';
-  metadata?: Record<string, string>;
-}
 
 export interface CreateWebhookParams {
   url: string;
   events: string[];
-  secret?: string;
   metadata?: Record<string, string>;
 }
 
@@ -271,7 +213,6 @@ export interface UpdateWebhookParams {
   url?: string;
   events?: string[];
   status?: 'active' | 'inactive';
-  secret?: string;
   metadata?: Record<string, string>;
 }
 
@@ -315,7 +256,7 @@ export type ListWebsetsResponse = PaginatedResponse<Webset>;
 export type ListItemsResponse = PaginatedResponse<WebsetItem>;
 export type ListSearchesResponse = PaginatedResponse<WebsetSearch>;
 export type ListEnrichmentsResponse = PaginatedResponse<WebsetEnrichment>;
-export type ListMonitorsResponse = PaginatedResponse<WebsetMonitor>;
+
 export type ListWebhooksResponse = PaginatedResponse<Webhook>;
 export type ListImportsResponse = PaginatedResponse<Import>;
 export type ListEventsResponse = PaginatedResponse<WebsetEvent>;

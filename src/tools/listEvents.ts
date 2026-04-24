@@ -9,7 +9,7 @@ import { checkpoint } from "agnost";
 export function registerListEventsTool(server: McpServer, config?: { exaApiKey?: string }): void {
   server.tool(
     "list_events",
-    "List system events with optional filtering. Events track all state changes across websets, searches, enrichments, monitors, and webhooks.",
+    "List system events with optional filtering. Events track all state changes across websets, searches, enrichments, and webhooks.",
     {
       limit: z.number().optional().describe("Number of events to return (default: 25, max: 100)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response"),

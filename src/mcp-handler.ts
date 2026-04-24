@@ -14,11 +14,6 @@ import { registerCancelSearchTool } from "./tools/cancelSearch.js";
 import { registerCreateEnrichmentTool } from "./tools/createEnrichment.js";
 import { registerGetEnrichmentTool } from "./tools/getEnrichment.js";
 import { registerCancelEnrichmentTool } from "./tools/cancelEnrichment.js";
-import { registerCreateMonitorTool } from "./tools/createMonitor.js";
-import { registerGetMonitorTool } from "./tools/getMonitor.js";
-import { registerUpdateMonitorTool } from "./tools/updateMonitor.js";
-import { registerDeleteMonitorTool } from "./tools/deleteMonitor.js";
-import { registerListMonitorsTool } from "./tools/listMonitors.js";
 import { registerPreviewWebsetTool } from "./tools/previewWebset.js";
 import { registerCreateWebhookTool } from "./tools/createWebhook.js";
 import { registerGetWebhookTool } from "./tools/getWebhook.js";
@@ -46,11 +41,6 @@ const availableTools = {
   'create_enrichment': { name: 'Create Enrichment', description: 'Add data enrichment to webset', enabled: true },
   'get_enrichment': { name: 'Get Enrichment', description: 'Get enrichment details and status', enabled: true },
   'cancel_enrichment': { name: 'Cancel Enrichment', description: 'Cancel a running enrichment', enabled: true },
-  'create_monitor': { name: 'Create Monitor', description: 'Create automated webset monitor', enabled: true },
-  'get_monitor': { name: 'Get Monitor', description: 'Get monitor details', enabled: true },
-  'update_monitor': { name: 'Update Monitor', description: 'Update a monitor', enabled: true },
-  'delete_monitor': { name: 'Delete Monitor', description: 'Delete a monitor', enabled: true },
-  'list_monitors': { name: 'List Monitors', description: 'List all monitors', enabled: true },
   'preview_webset': { name: 'Preview Webset', description: 'Preview how a search query will be interpreted', enabled: true },
   'create_webhook': { name: 'Create Webhook', description: 'Create a webhook for webset events', enabled: true },
   'get_webhook': { name: 'Get Webhook', description: 'Get webhook details', enabled: true },
@@ -160,30 +150,6 @@ export function initializeMcpServer(server: any, config: McpConfig = {}) {
       registeredTools.push('cancel_enrichment');
     }
 
-    if (shouldRegisterTool('create_monitor')) {
-      registerCreateMonitorTool(server, config);
-      registeredTools.push('create_monitor');
-    }
-
-    if (shouldRegisterTool('get_monitor')) {
-      registerGetMonitorTool(server, config);
-      registeredTools.push('get_monitor');
-    }
-
-    if (shouldRegisterTool('update_monitor')) {
-      registerUpdateMonitorTool(server, config);
-      registeredTools.push('update_monitor');
-    }
-
-    if (shouldRegisterTool('delete_monitor')) {
-      registerDeleteMonitorTool(server, config);
-      registeredTools.push('delete_monitor');
-    }
-
-    if (shouldRegisterTool('list_monitors')) {
-      registerListMonitorsTool(server, config);
-      registeredTools.push('list_monitors');
-    }
 
     if (shouldRegisterTool('preview_webset')) {
       registerPreviewWebsetTool(server, config);

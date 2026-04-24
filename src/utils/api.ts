@@ -14,7 +14,8 @@ export class ExaApiClient {
       headers: {
         'accept': 'application/json',
         'content-type': 'application/json',
-        'x-api-key': apiKey
+        'x-api-key': apiKey,
+        'x-exa-integration': 'websets-mcp'
       },
       timeout: 30000
     });

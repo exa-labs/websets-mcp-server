@@ -52,6 +52,8 @@ AFTER CREATING: The response includes the webset ID. The webset will take time t
         relationship: z.string().optional().describe("For hop searches — describes the relationship to traverse (e.g., 'investors of these companies')")
       }).optional().describe("Scope the search to items within an existing import or webset. Enables hop searches with relationship."),
       searchRecall: z.boolean().optional().describe("Whether to compute recall metrics for the search"),
+      searchMaxPeoplePerCompany: z.number().int().min(1).optional().describe("Soft cap on how many people from the same employer to include in person searches"),
+      searchMetadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with the search"),
       enrichments: z.array(z.object({
         description: z.string().describe("What data to extract (e.g., 'Annual revenue in USD', 'Number of full-time employees')"),
         format: z.enum(['text', 'date', 'number', 'options', 'email', 'phone', 'url']).optional().describe("Format of the enrichment response"),
@@ -65,7 +67,7 @@ AFTER CREATING: The response includes the webset ID. The webset will take time t
         id: z.string()
       })).optional().describe("Global exclude sources — results found in these imports or websets will be omitted across all operations in this webset")
     },
-    async ({ externalId, searchQuery, searchCount, searchEntity, searchCriteria, searchBehavior, searchExclude, searchScope, searchRecall, enrichments, metadata, excludes }) => {
+    async ({ externalId, searchQuery, searchCount, searchEntity, searchCriteria, searchBehavior, searchExclude, searchScope, searchRecall, searchMaxPeoplePerCompany, searchMetadata, enrichments, metadata, excludes }) => {
       const requestId = `create_webset-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const logger = createRequestLogger(requestId, 'create_webset');
       
@@ -89,7 +91,9 @@ AFTER CREATING: The response includes the webset ID. The webset will take time t
             ...(searchBehavior && { behavior: searchBehavior }),
             ...(searchExclude && { exclude: searchExclude }),
             ...(searchScope && { scope: searchScope }),
-            ...(searchRecall !== undefined && { recall: searchRecall })
+            ...(searchRecall !== undefined && { recall: searchRecall }),
+            ...(searchMaxPeoplePerCompany && { maxPeoplePerCompany: searchMaxPeoplePerCompany }),
+            ...(searchMetadata && { metadata: searchMetadata })
           };
         }
 

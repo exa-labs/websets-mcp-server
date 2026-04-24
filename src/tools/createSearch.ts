@@ -47,9 +47,10 @@ Example call:
         relationship: z.string().optional().describe("For hop searches — describes the relationship to traverse (e.g., 'investors of these companies')")
       }).optional().describe("Scope the search to items within an existing import or webset. Enables hop searches with relationship."),
       recall: z.boolean().optional().describe("Whether to compute recall metrics for the search"),
+      maxPeoplePerCompany: z.number().int().min(1).optional().describe("Soft cap on how many people from the same employer to include in person searches"),
       metadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with this search")
     },
-    async ({ websetId, query, count, entity, criteria, behavior, exclude, scope, recall, metadata }) => {
+    async ({ websetId, query, count, entity, criteria, behavior, exclude, scope, recall, maxPeoplePerCompany, metadata }) => {
       const requestId = `create_search-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const logger = createRequestLogger(requestId, 'create_search');
       
@@ -67,6 +68,7 @@ Example call:
           ...(exclude && { exclude }),
           ...(scope && { scope }),
           ...(recall !== undefined && { recall }),
+          ...(maxPeoplePerCompany && { maxPeoplePerCompany }),
           ...(metadata && { metadata })
         };
         
