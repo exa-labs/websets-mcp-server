@@ -11,7 +11,7 @@ export function registerListWebhooksTool(server: McpServer, config?: { exaApiKey
     "list_webhooks",
     "List all webhooks in your account. Returns a paginated list of webhooks with their URL, events, status, and metadata.",
     {
-      limit: z.number().optional().describe("Number of webhooks to return (default: 25, max: 200)"),
+      limit: z.coerce.number().optional().describe("Number of webhooks to return (default: 25, max: 200)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response")
     },
     async ({ limit, cursor }) => {

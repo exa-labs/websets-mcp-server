@@ -11,7 +11,7 @@ export function registerListEventsTool(server: McpServer, config?: { exaApiKey?:
     "list_events",
     "List system events with optional filtering. Events track all state changes across websets, searches, enrichments, and webhooks.",
     {
-      limit: z.number().optional().describe("Number of events to return (default: 25, max: 100)"),
+      limit: z.coerce.number().optional().describe("Number of events to return (default: 25, max: 100)"),
       cursor: z.string().optional().describe("Pagination cursor from previous response"),
       type: z.string().optional().describe("Filter by event type (e.g., 'webset.idle', 'webset.search.completed', 'webset.enrichment.completed')")
     },

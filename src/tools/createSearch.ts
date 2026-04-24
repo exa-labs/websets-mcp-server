@@ -28,14 +28,14 @@ Example call:
     {
       websetId: z.string().describe("The ID or externalId of the webset"),
       query: z.string().describe("Natural language query describing what to search for (e.g., 'AI startups in San Francisco')"),
-      count: z.number().int().min(1).optional().describe("Number of items to find (default: 10, min: 1)"),
+      count: z.coerce.number().int().min(1).optional().describe("Number of items to find (default: 10, min: 1)"),
       entity: z.object({
         type: z.enum(['company', 'person', 'article', 'research_paper', 'custom']).describe("Type of entity to search for"),
         description: z.string().optional().describe("Required when type is 'custom'. Describes the entity type (2-200 chars).")
       }).optional().describe("Entity type to search for. Example: {type: 'company'} or {type: 'custom', description: 'SaaS tools'}"),
       criteria: z.array(z.object({
-        description: z.string()
-      })).optional().describe("Additional criteria for evaluating search results. Each criterion is an object with a 'description' field. Example: [{description: 'Company is profitable'}, {description: 'Has raised Series A or later'}]"),
+        description: z.string().max(1000)
+      })).max(5).optional().describe("Additional criteria for evaluating search results (max 5). Each criterion is an object with a 'description' field (max 1000 chars). Example: [{description: 'Company is profitable'}, {description: 'Has raised Series A or later'}]"),
       behavior: z.enum(['override', 'append']).optional().describe("'override' replaces existing items, 'append' adds to them (default: override)"),
       exclude: z.array(z.object({
         source: z.enum(['import', 'webset']),
@@ -48,7 +48,7 @@ Example call:
       }).optional().describe("Scope the search to items within an existing import or webset. Enables hop searches with relationship."),
       recall: z.boolean().optional().describe("Whether to compute recall metrics for the search"),
       maxPeoplePerCompany: z.number().int().min(1).optional().describe("Soft cap on how many people from the same employer to include in person searches"),
-      metadata: z.record(z.string(), z.string()).optional().describe("Key-value pairs to associate with this search")
+      metadata: z.record(z.coerce.string(), z.coerce.string()).optional().describe("Key-value pairs to associate with this search")
     },
     async ({ websetId, query, count, entity, criteria, behavior, exclude, scope, recall, maxPeoplePerCompany, metadata }) => {
       const requestId = `create_search-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
