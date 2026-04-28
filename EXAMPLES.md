@@ -14,9 +14,11 @@ founded in the last 3 years
 
 **What happens:**
 - Claude calls `create_webset` with:
-  - name: "AI Startups"
   - searchQuery: "artificial intelligence companies founded in the last 3 years"
   - searchCount: 15
+  - searchEntity: `{type: "company"}`
+
+Note: there is no top-level `name` parameter on `create_webset`. To label a webset, call `update_webset` with `title` after creation, or pass a `metadata` object.
 
 ### Example 2: Create a Webset with Enrichments
 
@@ -55,22 +57,23 @@ List all my websets, then show me the full details and items from the
 ```
 I want to build a database of marketing agencies. Please:
 
-1. Create a webset called "Marketing Agencies" searching for 
-   "digital marketing agencies in the US with 50-200 employees"
-   
+1. Create a webset for "digital marketing agencies in the US with 50-200
+   employees" and update its title to "Marketing Agencies".
+
 2. Add these enrichments:
    - "Revenue": "Annual revenue in USD"
    - "Clients": "Notable client brands they've worked with"
    - "Services": "Primary marketing services offered"
    - "Location": "City and state of headquarters"
-   
-3. Set up a weekly monitor that searches for new agencies every Monday at 9am
+
+3. Run a follow-up search appending 50 more agencies focused on B2B SaaS
+   clients.
 ```
 
 **What happens:**
-- Step 1: Claude calls `create_webset`
+- Step 1: Claude calls `create_webset` and then `update_webset` with `title`
 - Step 2: Claude calls `create_enrichment` multiple times
-- Step 3: Claude calls `create_monitor` with schedule "0 9 * * 1"
+- Step 3: Claude calls `create_search` with `behavior: "append"`
 
 ### Example 5: Research Tracking
 
@@ -90,8 +93,8 @@ Add enrichments for:
 
 **Prompt to Claude:**
 ```
-I'm building an investor pipeline. Create a webset called "Climate Tech Startups" 
-that searches for "climate technology startups that raised funding in 2024".
+I'm building an investor pipeline. Create a webset for
+"climate technology startups that raised funding in 2024".
 
 Get 30 companies and enrich with:
 - "Funding Amount": "Total funding raised"
@@ -99,7 +102,8 @@ Get 30 companies and enrich with:
 - "Investors": "Lead investors in latest round"
 - "Technology": "Climate tech category (solar, carbon capture, etc)"
 
-Then set up a daily monitor to check for new companies.
+Then create a webhook to notify my server at https://example.com/hook
+when new searches complete.
 ```
 
 ## Working with Existing Websets
@@ -134,34 +138,26 @@ Show me the next 10 items
 
 Claude will use the pagination cursor automatically.
 
-## Monitor Schedules
+## Webhooks for Real-Time Updates
 
-### Common Cron Patterns
+The Websets MCP server exposes webhook tools (`create_webhook`, `list_webhooks`,
+`get_webhook`, `update_webhook`, `delete_webhook`) for receiving HTTP callbacks
+when events occur in your websets.
 
-**Daily Updates:**
-```
-Create a monitor for my webset that refreshes items daily at midnight
-```
-- Schedule: `0 0 * * *`
+**Common event types:**
+- `webset.search.completed` — search finished finding items
+- `webset.enrichment.completed` — enrichment finished extracting data
+- `webset.idle` — webset has finished all in-flight work
 
-**Weekday Morning Updates:**
+**Example prompt:**
 ```
-Create a monitor that searches for new items every weekday at 9am
+Create a webhook to https://example.com/hook subscribed to
+webset.search.completed and webset.enrichment.completed events.
 ```
-- Schedule: `0 9 * * 1-5`
 
-**Weekly Deep Refresh:**
-```
-Create a monitor that refreshes all item data every Sunday at 3am
-```
-- Schedule: `0 3 * * 0`
-- Behavior: `refresh`
-
-**Twice Daily:**
-```
-Create a monitor that searches for new items at 9am and 5pm every day
-```
-- Schedule: `0 9,17 * * *`
+> Scheduled monitors are exposed by the underlying Websets API but are not
+> currently surfaced as MCP tools in this server. Configure monitors directly
+> via the Websets API or the [websets.exa.ai](https://websets.exa.ai/) dashboard.
 
 ## Tips for Best Results
 
@@ -187,18 +183,6 @@ Create a monitor that searches for new items at 9am and 5pm every day
 - "revenue" (what currency? what time period?)
 - "size" (employees? revenue? customers?)
 
-### Using Monitors Effectively
-
-**Search behavior:** Use when you want to continuously grow the collection
-```
-Create a search monitor that runs weekly to find new companies matching the criteria
-```
-
-**Refresh behavior:** Use when you want to update existing data
-```
-Create a refresh monitor that runs daily to update enrichment data for all companies
-```
-
 ## Real-World Use Cases
 
 ### Use Case 1: Venture Capital Deal Flow
@@ -206,38 +190,36 @@ Create a refresh monitor that runs daily to update enrichment data for all compa
 **Setup:**
 ```
 Create 3 websets for different investment stages:
-1. "Seed Stage Prospects" - early stage companies in our sectors
-2. "Series A Targets" - companies ready for growth capital  
-3. "Late Stage Monitoring" - companies we passed on but want to track
+1. Seed-stage prospects — early stage companies in our sectors
+2. Series A targets — companies ready for growth capital
+3. Late-stage tracking — companies we passed on but want to track
 
-For each, add enrichments for: funding history, team size, revenue metrics, 
-and investor lists. Set up weekly monitors.
+For each, set the title via `update_webset`, then add enrichments for: funding
+history, team size, revenue metrics, and investor lists.
 ```
 
 ### Use Case 2: Sales Prospecting
 
 **Setup:**
 ```
-Create "Enterprise Sales Prospects" webset searching for 
+Create an "Enterprise Sales Prospects" webset searching for
 "Fortune 1000 companies in financial services".
 
-Enrich with: IT budget, current vendors, decision maker contacts, 
+Enrich with: IT budget, current vendors, decision maker contacts,
 tech stack, and recent news.
-
-Set up daily refresh to keep contact info current.
 ```
 
 ### Use Case 3: Market Research
 
 **Setup:**
 ```
-Create "Competitor Analysis" webset tracking 
+Create a "Competitor Analysis" webset tracking
 "direct competitors in the project management software space".
 
-Enrich with: pricing, feature set, customer count, recent product launches, 
+Enrich with: pricing, feature set, customer count, recent product launches,
 and marketing strategy.
 
-Set up twice-weekly search to catch new entrants.
+Re-run searches periodically (with `behavior: "append"`) to catch new entrants.
 ```
 
 ## Troubleshooting Common Issues

@@ -11,9 +11,9 @@ Websets are collections of web entities (companies, people, research papers) tha
 **Key capabilities:**
 - 🔍 **Automated Search**: Find entities matching natural language criteria
 - 📊 **Data Enrichment**: Extract custom information using AI agents
-- 🔄 **Monitoring**: Schedule automatic updates to keep collections fresh
 - 🎯 **Verification**: AI validates that entities meet your criteria
 - 🔗 **Webhooks**: Real-time notifications for collection updates
+- 📥 **Imports**: Bring your own CSV data into Websets for enrichment or scoping
 
 ## Available Tools
 
@@ -25,8 +25,9 @@ This MCP server provides the following tools:
 | `create_webset` | Create a new webset collection with optional search and enrichments |
 | `list_websets` | List all your websets with pagination support |
 | `get_webset` | Get details about a specific webset |
-| `update_webset` | Update a webset's metadata |
+| `update_webset` | Update a webset's title and/or metadata |
 | `delete_webset` | Delete a webset and all its items |
+| `preview_webset` | Preview how a search query will be interpreted before creating a webset |
 
 ### Item Management
 | Tool | Description |
@@ -48,10 +49,26 @@ This MCP server provides the following tools:
 | `get_enrichment` | Get details about a specific enrichment |
 | `cancel_enrichment` | Cancel a running enrichment operation |
 
-### Monitoring
+### Webhooks
 | Tool | Description |
 | ---- | ----------- |
-| `create_monitor` | Set up automated monitoring to keep the webset updated |
+| `create_webhook` | Subscribe to real-time HTTP callbacks for webset events |
+| `get_webhook` | Get details about a specific webhook |
+| `update_webhook` | Update a webhook's URL, events, or metadata |
+| `delete_webhook` | Delete a webhook |
+| `list_webhooks` | List all webhooks in your account |
+
+### Imports
+| Tool | Description |
+| ---- | ----------- |
+| `create_import` | Create an import to upload your own CSV data into Websets |
+| `get_import` | Get details about a specific import including upload URL |
+| `list_imports` | List all imports in your account |
+
+### Events
+| Tool | Description |
+| ---- | ----------- |
+| `list_events` | List system events (search, enrichment, webset lifecycle, etc.) |
 
 ## Installation
 
@@ -128,15 +145,18 @@ npx websets-mcp-server
 
 ### Cursor and Claude Code Configuration
 
-Use the HTTP-based configuration:
+Use the HTTP-based configuration. Pass your Exa API key as a Bearer token in the
+`Authorization` header (or as an `?exaApiKey=...` query parameter as a fallback):
 
 ```json
 {
   "mcpServers": {
     "websets": {
       "type": "http",
-      "url": "https://mcp.exa.ai/websets",
-      "headers": {}
+      "url": "https://websetsmcp.exa.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_EXA_API_KEY"
+      }
     }
   }
 }
@@ -176,11 +196,11 @@ List all my websets and show me the details of the one called "AI Startups"
 Show me the first 10 items from my "AI Startups" webset with all their enrichment data
 ```
 
-### Setting Up Monitoring
+### Adding More Items
 
 ```
-Create a monitor for my "AI Startups" webset that searches for new companies 
-every Monday at 9am using the cron schedule "0 9 * * 1"
+Run another search on my "AI Startups" webset for 20 more companies focused on
+enterprise voice agents, appending to the existing items
 ```
 
 ### Advanced Enrichments
@@ -206,10 +226,10 @@ Here's a complete workflow for building a company research database:
    primary market segment, and tech stack used
    ```
 
-3. **Set up monitoring:**
+3. **Subscribe to events:**
    ```
-   Create a weekly monitor that searches for new companies and refreshes 
-   enrichment data for existing ones
+   Create a webhook to https://example.com/hook subscribed to
+   webset.search.completed and webset.enrichment.completed
    ```
 
 4. **View results:**
@@ -224,20 +244,30 @@ Here's a complete workflow for building a company research database:
 Creates a new webset collection with optional automatic population and enrichments.
 
 **Parameters:**
-- `name` (optional): Name for the webset
-- `description` (optional): Description of what the webset contains
-- `externalId` (optional): Your own identifier (max 300 chars)
+- `externalId` (optional): Your own identifier for the webset (max 300 chars)
 - `searchQuery` (optional): Natural language query to find entities
 - `searchCount` (optional): Number of entities to find (default: 10, min: 1)
-- `searchCriteria` (optional): Additional filtering criteria
-- `enrichments` (optional): Array of enrichments to extract
+- `searchEntity` (optional): Entity type for the search, e.g. `{type: "company"}`. For `"custom"` type include a `description`.
+- `searchCriteria` (optional): Additional filtering criteria — `[{description: "..."}]` (max 5)
+- `searchBehavior` (optional): `"override"` (default) replaces existing items, `"append"` adds to them
+- `searchExclude` (optional): Imports/websets whose results to exclude — `[{source: "webset"|"import", id: "..."}]`
+- `searchScope` (optional): Scope the search to an existing import or webset — enables hop searches with a `relationship`
+- `searchRecall` (optional): Whether to compute recall metrics for the search
+- `searchMaxPeoplePerCompany` (optional): Soft cap on people-per-employer for person searches
+- `searchMetadata` (optional): Key-value metadata to associate with the search
+- `enrichments` (optional): Data enrichments to automatically extract for each item
+- `metadata` (optional): Key-value metadata to associate with the webset
+- `excludes` (optional): Global excludes — sources whose results are omitted across all operations on this webset
+
+Note: there is no top-level `name` or `description` parameter on the webset itself. Use `update_webset` with `title` after creation, or `metadata` to attach arbitrary key-value pairs.
 
 **Example:**
 ```json
 {
-  "name": "Tech Unicorns",
+  "externalId": "tech-unicorns-2024",
   "searchQuery": "Technology companies valued over $1 billion",
   "searchCount": 50,
+  "searchEntity": {"type": "company"},
   "searchCriteria": [
     {"description": "Valued at over $1 billion"},
     {"description": "Technology sector"}
@@ -272,35 +302,26 @@ Adds a new data enrichment to extract custom information from each webset item.
 **Parameters:**
 - `websetId`: The ID of the webset
 - `description`: Detailed description of what to extract
+- `format` (optional): One of `"text"`, `"date"`, `"number"`, `"options"`, `"email"`, `"phone"`, `"url"` — auto-selected if omitted
+- `options` (optional): When `format` is `"options"`, the choices the enrichment agent picks from — `[{label: "..."}]`
+- `metadata` (optional): Key-value metadata to associate with this enrichment
 
 **Example:**
 ```json
 {
   "websetId": "webset_abc123",
-  "description": "Total number of full-time employees as of the most recent data"
+  "description": "Total number of full-time employees as of the most recent data",
+  "format": "number"
 }
 ```
 
-### create_monitor
-
-Sets up automated monitoring with a cron schedule.
-
-**Parameters:**
-- `websetId`: The ID of the webset
-- `cron`: Cron expression (e.g., "0 9 * * 1" for Mondays at 9am)
-- `behavior`: Either "search" (find new items) or "refresh" (update existing)
-- `name` (optional): Name for the monitor
-- `enabled` (optional): Start enabled (default: true)
-
-**Common cron schedules:**
-- `0 9 * * 1` - Every Monday at 9am
-- `0 0 * * *` - Daily at midnight
-- `0 */6 * * *` - Every 6 hours
-- `0 9 * * 1-5` - Weekdays at 9am
+> Monitors (scheduled refresh/search) are exposed by the underlying Websets API but are
+> not currently surfaced as MCP tools in this server. Configure monitors directly via the
+> Websets API or [websets.exa.ai](https://websets.exa.ai/).
 
 ## API Endpoints
 
-The server connects to Exa's Websets API at `https://api.exa.ai/v0/websets`.
+The server connects to Exa's Websets API at `https://api.exa.ai/websets/v0`.
 
 Full API documentation: [docs.exa.ai/reference/websets](https://docs.exa.ai/reference/websets)
 
@@ -407,7 +428,9 @@ websets-mcp-server/
 │   │   ├── deleteWebset.ts
 │   │   ├── listItems.ts
 │   │   ├── createEnrichment.ts
-│   │   ├── createMonitor.ts
+│   │   ├── createSearch.ts
+│   │   ├── createWebhook.ts
+│   │   ├── createImport.ts
 │   │   └── ...
 │   └── utils/
 │       ├── api.ts            # Shared API client and error handling
