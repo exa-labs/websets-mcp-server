@@ -1,6 +1,28 @@
 # Changelog
 
-## [Unreleased] - 2025-10-16
+## [Unreleased]
+
+### Documentation
+
+- Sync docs with the actual prod tool surface after the monitor removal
+  in #22:
+  - `README.md`: replace stale `https://mcp.exa.ai/websets` URL with the real
+    deployment at `https://websetsmcp.exa.ai/mcp`; document the previously
+    undocumented tools (`preview_webset`, webhook tools, import tools,
+    `list_events`); drop the `create_monitor` section and the bogus
+    `name`/`description` parameters on `create_webset`; expand the
+    `create_webset` parameter list with `searchEntity`, `searchBehavior`,
+    `searchExclude`, `searchScope`, `searchRecall`,
+    `searchMaxPeoplePerCompany`, `searchMetadata`, `metadata`, and `excludes`;
+    fix base API URL to `https://api.exa.ai/websets/v0`.
+  - `EXAMPLES.md`: remove monitor / cron examples and replace with webhook
+    flows; drop `name` parameter usage.
+  - `TOOL_SCHEMAS.md`: replace the `create_monitor` section with sections for
+    `preview_webset`, `create_webhook`, and `create_import`.
+  - `api/well-known-mcp-config.ts`: remove the five monitor tool ids that the
+    server has not registered since #22.
+
+## [Earlier] - 2025-10-16
 
 ### Fixed
 

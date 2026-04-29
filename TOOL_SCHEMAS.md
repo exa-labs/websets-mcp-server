@@ -162,39 +162,56 @@ Create an enrichment to extract custom data from webset items.
 
 ---
 
-## Tool: create_monitor
+## Tool: preview_webset
 
-Create a monitor to automatically update a webset on a schedule.
+Preview how a search query will be interpreted before creating a webset. Returns the detected entity type, generated search criteria, and suggested enrichment columns.
 
 ### Example Call
 ```json
 {
-  "websetId": "webset_abc123",
-  "cron": "0 9 * * 1",
-  "timezone": "America/New_York",
-  "query": "New AI startups founded in 2024",
-  "criteria": [
-    {"description": "Founded in 2024"},
-    {"description": "Building AI/ML products"},
-    {"description": "Has public website"}
-  ],
-  "entity": {
-    "type": "company"
-  },
-  "count": 10,
-  "behavior": "append"
+  "query": "AI startups in San Francisco"
 }
 ```
 
-### Cron Expression Examples
-- `"0 9 * * 1"` - Every Monday at 9:00 AM
-- `"0 */6 * * *"` - Every 6 hours
-- `"0 0 1 * *"` - First day of every month at midnight
-- `"0 0 * * 0"` - Every Sunday at midnight
+---
 
-### Valid Behaviors
-- `"append"` - Add new items to existing ones (default)
-- `"override"` - Replace existing items with new ones
+## Tool: create_webhook
+
+Subscribe to real-time HTTP callbacks for webset events. The `secret` is server-generated and is only returned in the create response — store it securely.
+
+### Example Call
+```json
+{
+  "url": "https://example.com/webhook",
+  "events": [
+    "webset.search.completed",
+    "webset.enrichment.completed",
+    "webset.idle"
+  ],
+  "metadata": {
+    "environment": "production"
+  }
+}
+```
+
+---
+
+## Tool: create_import
+
+Upload your own CSV data into Websets. Returns an `uploadUrl` (presigned S3 URL) where you `PUT` your CSV. Imports can be used as scopes for searches or as exclude sources.
+
+### Example Call
+```json
+{
+  "format": "csv",
+  "size": 12345,
+  "count": 100,
+  "entity": {
+    "type": "company"
+  },
+  "title": "Q1 customer list"
+}
+```
 
 ---
 
