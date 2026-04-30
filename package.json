@@ -4,16 +4,16 @@
   "description": "A Model Context Protocol server for Exa Websets API. Create, manage, and enrich collections of web entities (companies, people, papers) with automated search, enrichments, and monitoring capabilities.",
   "mcpName": "io.github.exa-labs/websets-mcp-server",
   "type": "module",
-  "module": "./src/index.ts",
+  "module": "./src/stdio.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/exa-labs/websets-mcp-server.git"
   },
   "bin": {
-    "websets-mcp-server": ".smithery/stdio/index.cjs"
+    "websets-mcp-server": "dist/stdio.cjs"
   },
   "files": [
-    ".smithery"
+    "dist"
   ],
   "keywords": [
     "mcp",
@@ -29,15 +29,14 @@
   ],
   "author": "Exa Labs",
   "scripts": {
-    "build": "npm run build:shttp && npm run build:stdio",
-    "build:stdio": "smithery build src/index.ts --transport stdio -o .smithery/stdio/index.cjs && echo '#!/usr/bin/env node' | cat - .smithery/stdio/index.cjs > temp && mv temp .smithery/stdio/index.cjs && chmod +x .smithery/stdio/index.cjs",
-    "build:shttp": "smithery build src/index.ts --transport shttp -o .smithery/shttp/index.cjs",
+    "build": "npm run build:stdio",
+    "build:stdio": "esbuild src/stdio-cli.ts --bundle --platform=node --target=node18 --format=cjs --outfile=dist/stdio.cjs --banner:js=\"#!/usr/bin/env node\" && chmod +x dist/stdio.cjs",
     "prepare": "npm run build:stdio",
     "build:vercel": "npm install typescript && ./node_modules/.bin/tsc",
     "watch": "tsc --watch",
-    "dev": "npx @smithery/cli@latest dev",
+    "dev": "tsx src/stdio-cli.ts",
     "dev:vercel": "vercel dev",
-    "inspector": "npx @modelcontextprotocol/inspector build/index.js",
+    "inspector": "npx @modelcontextprotocol/inspector dist/stdio.cjs",
     "prepublishOnly": "npm run build:stdio"
   },
   "dependencies": {
@@ -48,8 +47,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@smithery/cli": "^1.4.4",
     "@types/node": "^20.11.24",
+    "esbuild": "^0.25.12",
     "tsx": "^4.7.0",
     "typescript": "^5.9.3",
     "vercel": "^37.0.0",
