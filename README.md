@@ -251,7 +251,7 @@ Creates a new webset collection with optional automatic population and enrichmen
 - `searchCriteria` (optional): Additional filtering criteria — `[{description: "..."}]` (max 5)
 - `searchBehavior` (optional): `"override"` (default) replaces existing items, `"append"` adds to them
 - `searchExclude` (optional): Imports/websets whose results to exclude — `[{source: "webset"|"import", id: "..."}]`
-- `searchScope` (optional): Scope the search to an existing import or webset — enables hop searches with a `relationship`
+- `searchScope` (optional): Scope the search to existing imports or websets — `[{source: "import"|"webset", id: "..."}]`; enables hop searches with a `relationship` object
 - `searchRecall` (optional): Whether to compute recall metrics for the search
 - `searchMaxPeoplePerCompany` (optional): Soft cap on people-per-employer for person searches
 - `searchMetadata` (optional): Key-value metadata to associate with the search

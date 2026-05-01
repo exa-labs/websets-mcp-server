@@ -49,6 +49,12 @@ Create a new Webset collection with optional search and enrichments.
   "externalId": "my-ai-startups-2024",
   "searchQuery": "AI startups in San Francisco",
   "searchCount": 20,
+  "searchScope": [
+    {
+      "source": "import",
+      "id": "import_abc123"
+    }
+  ],
   "searchCriteria": [
     {"description": "Founded after 2020"},
     {"description": "Has more than 10 employees"}
@@ -95,6 +101,12 @@ Create a new search to find and add items to an existing webset.
     {"description": "Operating in financial technology sector"},
     {"description": "Currently active"}
   ],
+  "scope": [
+    {
+      "source": "import",
+      "id": "import_abc123"
+    }
+  ],
   "behavior": "append",
   "recall": true,
   "metadata": {
@@ -114,6 +126,22 @@ Create a new search to find and add items to an existing webset.
 ### Valid Behaviors
 - `"override"` - Replaces existing items (default)
 - `"append"` - Adds to existing items
+
+### Scope Format
+`scope` and `searchScope` must be arrays, matching the Websets API:
+
+```json
+[
+  {
+    "source": "import",
+    "id": "import_abc123",
+    "relationship": {
+      "definition": "investors of these companies",
+      "limit": 5
+    }
+  }
+]
+```
 
 ---
 
@@ -439,4 +467,3 @@ All tools follow these consistent patterns:
 4. **Metadata**: Always `Record<string, string>` (object with string keys and values)
 
 This consistency ensures predictable usage across all Websets MCP tools.
-

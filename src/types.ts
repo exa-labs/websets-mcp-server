@@ -13,6 +13,15 @@ export interface ExcludeSource {
   id: string;
 }
 
+export interface SearchScopeSource {
+  source: 'import' | 'webset';
+  id: string;
+  relationship?: {
+    definition: string;
+    limit: number;
+  };
+}
+
 export interface Webset {
   id: string;
   object: 'webset';
@@ -63,11 +72,7 @@ export interface WebsetSearch {
   count: number;
   behavior: 'override' | 'append';
   exclude: ExcludeSource[];
-  scope?: {
-    source: 'import' | 'webset';
-    id: string;
-    relationship?: string;
-  };
+  scope?: SearchScopeSource[];
   progress?: {
     found: number;
     completion: number;
@@ -155,11 +160,7 @@ export interface CreateWebsetParams {
     criteria?: Array<{ description: string }>;
     behavior?: 'override' | 'append';
     exclude?: ExcludeSource[];
-    scope?: {
-      source: 'import' | 'webset';
-      id: string;
-      relationship?: string;
-    };
+    scope?: SearchScopeSource[];
     recall?: boolean;
     maxPeoplePerCompany?: number;
     metadata?: Record<string, string>;
@@ -185,11 +186,7 @@ export interface CreateSearchParams {
   criteria?: Array<{ description: string }>;
   behavior?: 'override' | 'append';
   exclude?: ExcludeSource[];
-  scope?: {
-    source: 'import' | 'webset';
-    id: string;
-    relationship?: string;
-  };
+  scope?: SearchScopeSource[];
   recall?: boolean;
   maxPeoplePerCompany?: number;
   metadata?: Record<string, string>;
