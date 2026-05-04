@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Align `create_search.scope` and `create_webset.searchScope` with the Websets
+  API by accepting arrays of scope sources instead of a single object.
+
 ### Documentation
 
 - Sync docs with the actual prod tool surface after the monitor removal
@@ -162,4 +167,3 @@ Or use multiple choice with options:
   ]
 }
 ```
-

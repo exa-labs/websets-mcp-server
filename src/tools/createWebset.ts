@@ -46,11 +46,14 @@ AFTER CREATING: The response includes the webset ID. The webset will take time t
         source: z.enum(['import', 'webset']),
         id: z.string()
       })).optional().describe("Exclude results found in these imports or websets. Example: [{source: 'webset', id: 'webset_123'}]"),
-      searchScope: z.object({
+      searchScope: z.array(z.object({
         source: z.enum(['import', 'webset']),
         id: z.string(),
-        relationship: z.string().optional().describe("For hop searches — describes the relationship to traverse (e.g., 'investors of these companies')")
-      }).optional().describe("Scope the search to items within an existing import or webset. Enables hop searches with relationship."),
+        relationship: z.object({
+          definition: z.string().describe("For hop searches — describes the relationship to traverse (e.g., 'investors of these companies')"),
+          limit: z.number().int().min(1).max(10)
+        }).optional()
+      })).optional().describe("Scope the search to items within existing imports or websets. Enables hop searches with relationship."),
       searchRecall: z.boolean().optional().describe("Whether to compute recall metrics for the search"),
       searchMaxPeoplePerCompany: z.number().int().min(1).optional().describe("Soft cap on how many people from the same employer to include in person searches"),
       searchMetadata: z.record(z.coerce.string(), z.coerce.string()).optional().describe("Key-value pairs to associate with the search"),

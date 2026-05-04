@@ -28,7 +28,8 @@ describe('ExaApiClient', () => {
       headers: {
         'accept': 'application/json',
         'content-type': 'application/json',
-        'x-api-key': apiKey
+        'x-api-key': apiKey,
+        'x-exa-integration': 'websets-mcp'
       },
       timeout: 30000
     });
@@ -108,4 +109,3 @@ describe('handleApiError', () => {
     expect(result.content[0].text).toContain('Helpful tip');
   });
 });
-
