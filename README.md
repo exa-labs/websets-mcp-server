@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/exa-labs-websets-mcp-server-badge.png)](https://mseep.ai/app/exa-labs-websets-mcp-server)
+
 # Exa Websets MCP Server
 
 [![smithery badge](https://smithery.ai/badge/@exa-labs/websets-mcp-server)](https://smithery.ai/server/@exa-labs/websets-mcp-server)
