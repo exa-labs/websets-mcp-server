@@ -1,10 +1,9 @@
-  {
+{
   "mcpServers": {
     "websets": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "websets-mcp-server"
+        "/path/to/websets-mcp-server/.smithery/stdio/index.cjs"
       ],
       "env": {
         "EXA_API_KEY": "your-api-key-here"

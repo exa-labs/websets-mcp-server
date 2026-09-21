@@ -88,23 +88,26 @@ npx -y @smithery/cli install @exa-labs/websets-mcp-server
 
 ### Using Claude Code (Recommended)
 
-The quickest way to set up Websets MCP:
+The quickest way to set up Websets MCP is the hosted HTTP endpoint:
 
 ```bash
-claude mcp add websets -e EXA_API_KEY=YOUR_API_KEY -- npx -y websets-mcp-server
+claude mcp add --transport http websets https://websetsmcp.exa.ai/mcp --header "Authorization: Bearer YOUR_API_KEY"
 ```
 
 Replace `YOUR_API_KEY` with your Exa API key.
 
-### Using NPX
+### Running Locally (stdio)
+
+This server is not published to npm. To run it locally, build it from source
+(see [Building from Source](#building-from-source)) and point your client at
+the built entrypoint:
 
 ```bash
-# Install globally
-npm install -g websets-mcp-server
-
-# Or run directly with npx
-npx websets-mcp-server
+EXA_API_KEY=YOUR_API_KEY node /path/to/websets-mcp-server/.smithery/stdio/index.cjs
 ```
+
+> **Warning:** Do not install or run `websets-mcp-server` via `npm`/`npx`. That
+> unscoped npm package name is not owned by Exa.
 
 ## Configuration
 
@@ -125,10 +128,9 @@ npx websets-mcp-server
    {
      "mcpServers": {
        "websets": {
-         "command": "npx",
+         "command": "node",
          "args": [
-           "-y",
-           "websets-mcp-server"
+           "/path/to/websets-mcp-server/.smithery/stdio/index.cjs"
          ],
          "env": {
            "EXA_API_KEY": "your-api-key-here"
@@ -137,6 +139,9 @@ npx websets-mcp-server
      }
    }
    ```
+
+   Replace `/path/to/websets-mcp-server` with your local clone (built per
+   [Building from Source](#building-from-source)).
 
 3. **Restart Claude Desktop**
    - Completely quit Claude Desktop
@@ -335,10 +340,9 @@ To enable only certain tools, use the `enabledTools` config:
 {
   "mcpServers": {
     "websets": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "websets-mcp-server",
+        "/path/to/websets-mcp-server/.smithery/stdio/index.cjs",
         "--tools=create_webset,list_websets,list_webset_items"
       ],
       "env": {
@@ -357,10 +361,9 @@ Enable debug logging to troubleshoot issues:
 {
   "mcpServers": {
     "websets": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "websets-mcp-server",
+        "/path/to/websets-mcp-server/.smithery/stdio/index.cjs",
         "--debug"
       ],
       "env": {
