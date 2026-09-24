@@ -62,7 +62,7 @@ export interface McpConfig {
 /**
  * Initialize and configure the MCP server with all websets tools.
  * Called by both the Vercel Function entry point (api/mcp.ts) and the
- * Smithery CLI entry point (src/index.ts).
+ * stdio entry point (src/stdio.ts).
  */
 export function initializeMcpServer(server: any, config: McpConfig = {}) {
   try {
